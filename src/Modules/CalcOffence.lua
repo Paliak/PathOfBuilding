@@ -1854,32 +1854,39 @@ function calcs.offence(env, actor, activeSkill)
 		end
 
 		-- Calculate hit chance
-		local base = skillModList:Sum("BASE", cfg, "Accuracy")
-		local baseVsEnemy = skillModList:Sum("BASE", cfg, "Accuracy", "AccuracyVsEnemy")
-		local inc = skillModList:Sum("INC", cfg, "Accuracy")
-		local incVsEnemy = skillModList:Sum("INC", cfg, "Accuracy", "AccuracyVsEnemy")
-		local more = skillModList:More("MORE", cfg, "Accuracy")
-		local moreVsEnemy = skillModList:More("MORE", cfg, "Accuracy", "AccuracyVsEnemy")
+		local override = modDB:Override(nil, "Accuracy")
+		local accuracyVsEnemy
+		if override then
+			output.Accuracy = override
+			accuracyVsEnemy = override
+		else
+			local base = skillModList:Sum("BASE", cfg, "Accuracy")
+			local baseVsEnemy = skillModList:Sum("BASE", cfg, "Accuracy", "AccuracyVsEnemy")
+			local inc = skillModList:Sum("INC", cfg, "Accuracy")
+			local incVsEnemy = skillModList:Sum("INC", cfg, "Accuracy", "AccuracyVsEnemy")
+			local more = skillModList:More("MORE", cfg, "Accuracy")
+			local moreVsEnemy = skillModList:More("MORE", cfg, "Accuracy", "AccuracyVsEnemy")
 
-		output.Accuracy = m_max(0, m_floor(base * (1 + inc / 100) * more))
-		local accuracyVsEnemy = m_max(0, m_floor(baseVsEnemy * (1 + incVsEnemy / 100) * moreVsEnemy))
-		if breakdown then
-			breakdown.Accuracy = { }
-			breakdown.multiChain(breakdown.Accuracy, {
-				base = { "%g ^8(base)", base },
-				{ "%.2f ^8(increased/reduced)", 1 + inc / 100 },
-				{ "%.2f ^8(more/less)", more },
-				total = s_format("= %g", output.Accuracy)
-			})
-			if output.Accuracy ~= accuracyVsEnemy then
-				t_insert(breakdown.Accuracy, s_format(""))
+			output.Accuracy = m_max(0, m_floor(base * (1 + inc / 100) * more))
+			accuracyVsEnemy = m_max(0, m_floor(baseVsEnemy * (1 + incVsEnemy / 100) * moreVsEnemy))
+			if breakdown then
+				breakdown.Accuracy = { }
 				breakdown.multiChain(breakdown.Accuracy, {
-					label = "Effective Accuracy vs Enemy",
-					base = { "%g ^8(base)", baseVsEnemy },
-					{ "%.2f ^8(increased/reduced)", 1 + incVsEnemy / 100 },
-					{ "%.2f ^8(more/less)", moreVsEnemy },
-					total = s_format("= %g", accuracyVsEnemy)
+					base = { "%g ^8(base)", base },
+					{ "%.2f ^8(increased/reduced)", 1 + inc / 100 },
+					{ "%.2f ^8(more/less)", more },
+					total = s_format("= %g", output.Accuracy)
 				})
+				if output.Accuracy ~= accuracyVsEnemy then
+					t_insert(breakdown.Accuracy, s_format(""))
+					breakdown.multiChain(breakdown.Accuracy, {
+						label = "Effective Accuracy vs Enemy",
+						base = { "%g ^8(base)", baseVsEnemy },
+						{ "%.2f ^8(increased/reduced)", 1 + incVsEnemy / 100 },
+						{ "%.2f ^8(more/less)", moreVsEnemy },
+						total = s_format("= %g", accuracyVsEnemy)
+					})
+				end
 			end
 		end
 		if skillModList:Flag(nil, "Condition:OffHandAccuracyIsMainHandAccuracy") and pass.label == "Main Hand" then
@@ -1893,6 +1900,9 @@ function calcs.offence(env, actor, activeSkill)
 					"Using Main Hand Accuracy due to Mastery: "..output.Accuracy,
 				}
 			end
+		end
+		if modDB:Flag(nil, "MinionAccuracyEqualsAccuracy") and env.minion and pass.label == "Skill" then
+			env.minion.modDB:NewMod("Accuracy", "OVERRIDE", output.Accuracy, "Player")
 		end
 		if not isAttack or skillModList:Flag(cfg, "CannotBeEvaded") or skillData.cannotBeEvaded or (env.mode_effective and enemyDB:Flag(nil, "CannotEvade")) then
 			output.AccuracyHitChance = 100
@@ -3444,7 +3454,7 @@ function calcs.offence(env, actor, activeSkill)
 			t_insert(breakdown.PvpTotalDPS, s_format("= %.1f", output.PvpTotalDPS))
 		end
 	end
-	
+
 	if skillFlags.minion then
 		skillData.summonSpeed = output.SummonedMinionsPerCast * (output.HitSpeed or output.Speed) * skillData.dpsMultiplier
 	end
