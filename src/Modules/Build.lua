@@ -1466,8 +1466,12 @@ function buildMode:AddDisplayStatList(statList, actor)
 	if actor.output.VixensTooMuchCastSpeedWarn then
 		InsertIfNew(self.controls.warnings.lines, "You may have too much cast speed or too little cooldown reduction to effectively use Vixen's Curse replacement")
 	end
+
 	if actor.output.VixenModeNoVixenGlovesWarn then
 		InsertIfNew(self.controls.warnings.lines, "Vixen's calculation mode for Doom Blast is selected but you do not have Vixen's Entrapment Embroidered Gloves equipped")
+	end
+	if actor.minionData and actor.output.MinionLifeConvertedWarning then
+		InsertIfNew(self.controls.warnings.lines, "Your ".. actor.minionData.name .." minion has converted more than 100% of their life to energy shield")
 	end
 end
 
