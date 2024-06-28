@@ -1086,6 +1086,26 @@ local configTable = {
 		return {triggerChance =  env.player.mainSkill.skillData.chanceToTriggerOnStun,
 				source = env.player.mainSkill}
 	end,
+	["automation"] = function(env)
+		if env.player.mainSkill.activeEffect.grantedEffect.name == "Automation" then
+			-- This calculated the trigger rate of the Automation gem it self
+			env.player.mainSkill.skillFlags.globalTrigger = true
+			return {source = env.player.mainSkill}
+		end
+		env.player.mainSkill.skillData.sourceRateIsFinal = true
+
+		-- Trigger rate of the triggered skill is capped by the cooldown of Automation
+		-- which will likely be different from the cooldown of the triggered skill
+		-- and is affected by different cooldown modifiers
+		env.player.mainSkill.skillData.ignoresTickRate = true
+
+		-- This basically does min(trigger rate of steelskin assuming no trigger cooldown, trigger rate of Automation)
+		return {triggerOnUse = true,
+				useCastRate = true,
+				triggerSkillCond = function(env, skill)
+					return skill.activeEffect.grantedEffect.name == "Automation"
+				end}
+	end,
 	["spellslinger"] = function(env)
 		if env.player.mainSkill.activeEffect.grantedEffect.name == "Spellslinger" then
 			return {triggerName = "Spellslinger",
@@ -1138,7 +1158,7 @@ local configTable = {
         env.player.mainSkill.skillFlags.globalTrigger = true
 		local uuid = cacheSkillUUID(env.player.mainSkill, env)
 		if not GlobalCache.cachedData[env.mode][uuid] or env.mode == "CALCULATOR" then
-			calcs.buildActiveSkill(env, env.mode, env.player.mainSkill, {[uuid] = true})
+			calcs.buildActiveSkill(env, env.mode, env.player.mainSkill, uuid, {[uuid] = true})
 		end
 		env.player.mainSkill.skillData.triggerRateCapOverride = 1 / GlobalCache.cachedData[env.mode][uuid].Env.player.output.Duration
 		if env.player.breakdown then
@@ -1183,7 +1203,6 @@ local configTable = {
 			env.player.mainSkill.triggeredBy.activationFreqInc = activationFreqInc
 			env.player.mainSkill.triggeredBy.activationFreqMore = activationFreqMore
 			env.player.mainSkill.triggeredBy.ignoresTickRate = true
-			env.player.output.EffectiveSourceRate = trigRate
 			return {trigRate = env.player.mainSkill.triggeredBy.mainSkill.skillData.repeatFrequency * activationFreqInc * activationFreqMore,
 					source = env.player.mainSkill.triggeredBy.mainSkill,
 					triggeredSkillCond = function(env, skill) return skill.skillData.triggeredByBrand and slotMatch(env, skill) end}
