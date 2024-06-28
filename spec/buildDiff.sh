@@ -45,7 +45,7 @@ do
     }
 
     # Dedicated output diff
-    DIFFOUTPUT=$(luajit spec/diffOutput.lua "$build" "/tmp/headref/$BASENAME") || {
+    DIFFOUTPUT=$(luajit spec/diffOutput.lua "/tmp/headref/$BASENAME" "$build") || {
         echo "## Output Diff for $BASENAME"
         echo '```'
         echo "$DIFFOUTPUT"
