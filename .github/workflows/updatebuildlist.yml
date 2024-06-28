@@ -5,19 +5,15 @@ on:
   workflow_dispatch:
 jobs:
   push-beta:
-    if: github.repository == 'PathOfBuildingCommunity/PathOfBuilding'
+    #if: github.repository == 'PathOfBuildingCommunity/PathOfBuilding'
     runs-on: ubuntu-22.04
     steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v4
       - name: Download old build list
-        uses: actions/download-artifact@v4
+        uses: actions/cache@v4
         with:
-          name: test-build-list
+          path: spec/builds.txt
+          key: 'builds.txt'
       - name: Update list
         run: cat builds.txt <({ curl "https://pobarchives.com/api/builds?q=latest" & curl "https://pobarchives.com/api/builds?q=trending"; } | jq -r '.builds[].build_info.build_link') | sort -u | tail -n 500 | sponge builds.txt
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-build-list
-          path: builds.txt
-          overwrite: true
-          if-no-files-found: error

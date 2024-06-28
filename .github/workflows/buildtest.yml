@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   run_build_diff:
-    if: github.repository == 'PathOfBuildingCommunity/PathOfBuilding'
+    #if: github.repository == 'PathOfBuildingCommunity/PathOfBuilding'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout HEAD
@@ -25,6 +25,11 @@ jobs:
         with:
           path: /tmp/cache/
           key: '${{ steps.get-dev-ref.outputs.devref }}'
+      - name: Download new build list
+        uses: actions/cache@v4
+        with:
+          path: spec/builds.txt
+          key: 'builds.txt'
       - name: Make sure cache is readable by docker
         run: chmod -R 777 /tmp/cache
       - name: Run build diff
