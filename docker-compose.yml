@@ -1,7 +1,7 @@
 services:
   busted-tests:
     #build: .
-    image: ghcr.io/paliak/busted-tests
+    image: ghcr.io/paliak/busted-tests:latest
     environment:
       HOME: /tmp
     container_name: busted-tests
@@ -16,7 +16,7 @@ services:
       - ./:/workdir:ro
   busted-diff:
     #build: .
-    image: ghcr.io/paliak/busted-tests
+    image: ghcr.io/paliak/busted-tests:latest
     environment: #Where in the container the folders are stored
       WORKDIR: /workdir
       HOME: /tmp
