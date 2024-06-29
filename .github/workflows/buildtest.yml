@@ -35,9 +35,12 @@ jobs:
       - name: Update static builds list
         if: ${{ steps.download-build-list.outputs.found_artifact == 'true' }}
         run: cat builds.txt > spec/builds.txt
+      - name: Download latest build xmls
+        uses: dawidd6/action-download-artifact@3ecf4024886f219d9290351234889bfb45d1b9da
         with:
-          path: spec/builds.txt
-          key: 'builds.txt'
+          name: build-xmls
+          if_no_artifact_found: warn
+          path: /tmp/cache/
       - name: Make sure cache is readable by docker
         run: chmod -R 777 /tmp/cache
       - name: Run build diff
@@ -51,3 +54,19 @@ jobs:
         with:
           name: build-diff-output
           path: /tmp/artefact
+      - name: move xmls found in builds.txt to a new directory
+        run: |
+          mkdir new-build-xmls
+          while IFS= read -r line; do
+              FILENAME="/tmp/cache/$( echo $line | tr -cd '[[:alnum:]]').xml"
+              if [ -f "$FILENAME" ]; then
+                  mv "$FILENAME" "./new-build-xmls/"
+              fi
+          done < "./spec/builds.txt"
+      - name: Upload new build xmls
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-xmls
+          path: './new-build-xmls/*'
+          overwrite: true
+          retention-days: 3
