@@ -24,9 +24,17 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/cache/
-          key: '${{ steps.get-dev-ref.outputs.devref }}'
-      - name: Download new build list
-        uses: actions/cache@v4
+          key: ${{ steps.get-dev-ref.outputs.devref }}
+      - name: Download latest build list
+        id: download-build-list
+        uses: dawidd6/action-download-artifact@3ecf4024886f219d9290351234889bfb45d1b9da
+        with:
+          name: builds.txt
+          if_no_artifact_found: warn
+          workflow: updatebuildlist.yml
+      - name: Update static builds list
+        if: ${{ steps.download-build-list.outputs.found_artifact == 'true' }}
+        run: cat builds.txt > spec/builds.txt
         with:
           path: spec/builds.txt
           key: 'builds.txt'
