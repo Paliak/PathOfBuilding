@@ -1,14 +1,15 @@
+---
 name: Run Tests
 on:
   pull_request:
     branches:
       - dev
+  workflow_dispatch:
 concurrency:
-  group: '${{ github.workflow }}-${{ github.ref }}'
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   run_build_diff:
-    #if: github.repository == 'PathOfBuildingCommunity/PathOfBuilding'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout HEAD
