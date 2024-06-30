@@ -31,3 +31,5 @@ RUN luarocks install luaposix
 
 RUN --mount=type=cache,from=luajit,source=/opt,target=/opt make -C /opt/LuaJIT/ install && ln -sf /usr/local/bin/luajit-2.1.0-beta3 /usr/local/bin/luajit
 RUN --mount=type=cache,from=emmyluadebugger,source=/opt,target=/opt make -C /opt/EmmyLuaDebugger/build/ install
+
+CMD [ "echo", "This container is meant to be ran with docker compose. See: https://github.com/PathOfBuildingCommunity/PathOfBuilding/blob/dev/CHANGELOG.md" ]
