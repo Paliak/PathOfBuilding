@@ -14,23 +14,21 @@ rm -rf /tmp/workdir && mkdir /tmp/workdir && cp -rf $WORKDIR/. /tmp/workdir/ && 
 git config --global --add safe.directory /tmp/workdir
 git config --global --add advice.detachedHead false
 
-if [[ -z "$HEADBRANCH" ]]
+if [[ ! -z "$HEADREF" ]]
 then
-    git diff --no-color $HEADBRANCH -- /tmp/workdir/.busted /tmp/workdir/src/HeadlessWrapper.lua /tmp/workdir/spec/ > /tmp/HeadPatch &&
-	git reset --hard $HEADBRANCH && git clean -fd && git apply --allow-empty /tmp/HeadPatch
+    git diff --no-color $HEADREF -- /tmp/workdir/.busted /tmp/workdir/src/HeadlessWrapper.lua /tmp/workdir/spec/ > /tmp/HeadPatch &&
+    git reset --hard $HEADREF && git clean -fd && git apply --allow-empty /tmp/HeadPatch
 fi
 
-DEVREF="${DEVREF:-dev}"
+headsha=$(git rev-parse HEAD)
+devsha=$(git rev-parse $DEVREF)
 
-headref=$(git rev-parse HEAD)
-devref=$(git rev-parse $DEVREF)
-
-rm -rf /tmp/headref && mkdir /tmp/headref
+rm -rf /tmp/headsha && mkdir /tmp/headsha
 rm /tmp/workdir/src/Settings.xml
-cat /tmp/workdir/spec/builds.txt | dos2unix | parallel --will-cite --ungroup --pipe -N50 'LINKSBATCH="$(mktemp){#}"; cat > $LINKSBATCH; BUILDLINKS="$LINKSBATCH" BUILDCACHEPREFIX="/tmp/headref" busted --lua=luajit -r generate' && \
-BUILDCACHEPREFIX='/tmp/headref' busted --lua=luajit -r generate && date > "/tmp/headref/$headref" && echo "[+] Build cache computed for $headref (headref)" || exit $?
+cat /tmp/workdir/spec/builds.txt | dos2unix | parallel --will-cite --ungroup --pipe -N50 'LINKSBATCH="$(mktemp){#}"; cat > $LINKSBATCH; BUILDLINKS="$LINKSBATCH" BUILDCACHEPREFIX="/tmp/headsha" busted --lua=luajit -r generate' && \
+BUILDCACHEPREFIX='/tmp/headsha' busted --lua=luajit -r generate && date > "/tmp/headsha/$headsha" && echo "[+] Build cache computed for $headsha (headsha)" || exit $?
 
-if [[ ! -f "$CACHEDIR/$devref" ]] # Output of builds outdated or nonexistent
+if [[ ! -f "$CACHEDIR/$devsha" ]] # Output of builds outdated or nonexistent
 then
 	rm -rf $CACHEDIR/*.build
 
@@ -38,7 +36,7 @@ then
     git diff --no-color $DEVREF -- /tmp/workdir/.busted /tmp/workdir/src/HeadlessWrapper.lua /tmp/workdir/spec/ > /tmp/DevPatch && \
     git reset --hard $DEVREF && git clean -fd && git apply --allow-empty /tmp/DevPatch && \
     cat /tmp/workdir/spec/builds.txt | dos2unix | parallel --will-cite --ungroup --pipe -N50 'LINKSBATCH="$(mktemp){#}"; cat > $LINKSBATCH; BUILDLINKS="$LINKSBATCH" BUILDCACHEPREFIX="$CACHEDIR" busted --lua=luajit -r generate' && \
-    BUILDCACHEPREFIX="$CACHEDIR" busted --lua=luajit -r generate && date > "$CACHEDIR/$devref" && echo "[+] Build cache computed for $devref (devref)" || exit $?
+    BUILDCACHEPREFIX="$CACHEDIR" busted --lua=luajit -r generate && date > "$CACHEDIR/$devsha" && echo "[+] Build cache computed for $devsha (devsha)" || exit $?
 fi
 
 for build in $CACHEDIR/*.build
@@ -46,7 +44,7 @@ do
     BASENAME=$(basename "$build")
 
     # Only print the header if there is a diff to display
-    DIFFOUTPUT=$(diff <(xmllint --exc-c14n "$build") <(xmllint --exc-c14n "/tmp/headref/$BASENAME")) || {
+    DIFFOUTPUT=$(diff <(xmllint --exc-c14n "$build") <(xmllint --exc-c14n "/tmp/headsha/$BASENAME")) || {
         echo "## Savefile Diff for $BASENAME"
         echo '```diff'
         echo "$DIFFOUTPUT"
@@ -54,7 +52,7 @@ do
     }
 
     # Dedicated output diff
-    DIFFOUTPUT=$(luajit spec/diffOutput.lua "/tmp/headref/$BASENAME" "$build") || {
+    DIFFOUTPUT=$(luajit spec/diffOutput.lua "/tmp/headsha/$BASENAME" "$build") || {
         echo "## Output Diff for $BASENAME"
         echo '```'
         echo "$DIFFOUTPUT"
