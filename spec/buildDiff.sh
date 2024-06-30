@@ -13,8 +13,17 @@ rm -rf /tmp/workdir && mkdir /tmp/workdir && cp -rf $WORKDIR/. /tmp/workdir/ && 
 
 git config --global --add safe.directory /tmp/workdir
 git config --global --add advice.detachedHead false
+
+if [[ -z "$HEADBRANCH" ]]
+then
+    git diff --no-color $HEADBRANCH -- /tmp/workdir/.busted /tmp/workdir/src/HeadlessWrapper.lua /tmp/workdir/spec/ > /tmp/HeadPatch &&
+	git reset --hard $HEADBRANCH && git clean -fd && git apply --allow-empty /tmp/HeadPatch
+fi
+
+DEVREF="${DEVREF:-dev}"
+
 headref=$(git rev-parse HEAD)
-devref=$(git rev-parse origin/dev)
+devref=$(git rev-parse $DEVREF)
 
 rm -rf /tmp/headref && mkdir /tmp/headref
 rm /tmp/workdir/src/Settings.xml
@@ -26,8 +35,8 @@ then
 	rm -rf $CACHEDIR/*.build
 
     # Keep new changes to tests related files
-    git diff --no-color origin/dev -- /tmp/workdir/.busted /tmp/workdir/src/HeadlessWrapper.lua /tmp/workdir/spec/ > /tmp/patch && \
-    git reset --hard origin/dev && git clean -fd && git apply --allow-empty /tmp/patch && \
+    git diff --no-color $DEVREF -- /tmp/workdir/.busted /tmp/workdir/src/HeadlessWrapper.lua /tmp/workdir/spec/ > /tmp/DevPatch && \
+    git reset --hard $DEVREF && git clean -fd && git apply --allow-empty /tmp/DevPatch && \
     cat /tmp/workdir/spec/builds.txt | dos2unix | parallel --will-cite --ungroup --pipe -N50 'LINKSBATCH="$(mktemp){#}"; cat > $LINKSBATCH; BUILDLINKS="$LINKSBATCH" BUILDCACHEPREFIX="$CACHEDIR" busted --lua=luajit -r generate' && \
     BUILDCACHEPREFIX="$CACHEDIR" busted --lua=luajit -r generate && date > "$CACHEDIR/$devref" && echo "[+] Build cache computed for $devref (devref)" || exit $?
 fi
