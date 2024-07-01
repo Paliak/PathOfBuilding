@@ -15,7 +15,7 @@ jobs:
       - name: Checkout HEAD
         uses: actions/checkout@v4
       - name: Fetch Dev branch
-        run: git fetch --depth=1
+        run: git fetch --depth=1 origin/dev
       - name: Get Dev branch HEAD hash
         id: get-dev-ref
         run: echo "devref=$(git rev-parse origin/dev)" >> $GITHUB_OUTPUT
