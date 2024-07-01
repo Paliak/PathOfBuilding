@@ -17,7 +17,7 @@ jobs:
       - name: Fetch Dev branch
         id: get-dev-ref
         run: |
-            git fetch --depth=1
+            git fetch --depth=1 origin dev
             echo "devref=$(git rev-parse origin/dev)" >> $GITHUB_OUTPUT
       - name: Download Dev branch cache
         id: download-dev-ref-cache
