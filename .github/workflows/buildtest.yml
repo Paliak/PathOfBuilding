@@ -26,6 +26,7 @@ jobs:
           name: cache-devref-${{ steps.get-dev-ref.outputs.devref }}
           path: /tmp/cache/
           if_no_artifact_found: warn
+          checkArtifacts: true
       # Dev ref cache contains the build list and build xmls. Use that one to keep tests reproducible
       - name: Update static builds list from cache
         if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'true' }}
@@ -38,6 +39,7 @@ jobs:
           name: builds.txt
           workflow: updatebuildlist.yml
           if_no_artifact_found: warn
+          checkArtifacts: true
       - name: Update static builds list
         if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'false' && steps.download-build-list.outputs.found_artifact == 'true' }}
         run: cat builds.txt > spec/builds.txt
@@ -48,6 +50,7 @@ jobs:
           name: build-xmls
           path: /tmp/cache/
           if_no_artifact_found: warn
+          checkArtifacts: true
       - name: Calculate build xmls and differences between them
         run: |
             mkdir /tmp/cache || true # Make sure /tmp/cache exists. Ignore exit code
