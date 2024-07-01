@@ -49,7 +49,9 @@ jobs:
           path: /tmp/cache/
           if_no_artifact_found: warn
       - name: Calculate build xmls and differences between them
-        run: chmod -R 777 /tmp/cache && docker compose run -v '/tmp/cache/:/cache' -e 'CACHEDIR=/cache' busted-diff | tee /tmp/dockerlog
+        run: |
+            mkdir /tmp/cache || true # Make sure /tmp/cache exists. Ignore exit code
+            chmod -R 777 /tmp/cache && docker compose run -v '/tmp/cache/:/cache' -e 'CACHEDIR=/cache' busted-diff | tee /tmp/dockerlog
       - name: Generate artefact
         run: |
           sed -n '/Savefile Diff for/, $p' /tmp/dockerlog | tee /tmp/artefact
