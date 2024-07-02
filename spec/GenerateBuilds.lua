@@ -75,7 +75,7 @@ for testBuild in fetchBuilds("../spec/TestBuilds") do
     print("[+] Computing " .. filePath)
     loadBuildFromXML(testBuild.xml)
     local calcDuration = startTime - GetTime()
-    print("[-] Computed " .. filePath " in " .. calcDuration .. "ms")
+    print("[-] Computed " .. filePath .. " in " .. calcDuration .. "ms")
 
     -- Save the computed build xml. Include full minuion and player outputs.
     local buildHnd = io.open(filePath .. ".build", "w+")
