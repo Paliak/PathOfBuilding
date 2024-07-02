@@ -37,10 +37,13 @@ jobs:
         uses: dawidd6/action-download-artifact@3ecf4024886f219d9290351234889bfb45d1b9da
         with:
           name: builds.txt
-          path: spec/builds.txt
+          path: /tmp/latestbuildlist/
           workflow: updatebuildlist.yml
           if_no_artifact_found: warn
           search_artifacts: true
+      - name: Update static builds list
+        if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'false' && steps.download-build-list.outputs.found_artifact == 'true' }}
+        run: cat /tmp/latestbuildlist/builds.txt > spec/builds.txt
       - name: Download latest build xmls
         if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'false' }}
         uses: dawidd6/action-download-artifact@3ecf4024886f219d9290351234889bfb45d1b9da
