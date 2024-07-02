@@ -6,7 +6,7 @@ if headHnd and devHnd then
 	local headRuntime = tonumber(headHnd:read("*a"))
 	local devRuntime = tonumber(devHnd:read("*a"))
 	local runtimeDifference = math.abs(headRuntime / devRuntime - 1)
-	if runtimeDifference <= 0.1 then
+	if runtimeDifference >= 0.1 then
 		print(string.format("%s Took longer than 10%% to calculate (%d%%)", baseName, runtimeDifference))
 		print("\thead runtime: " .. headRuntime .. "ms")
 		print("\tdev Output: " .. devRuntime .. "ms")

@@ -55,7 +55,8 @@ jobs:
             chmod -R 777 /tmp/cache && docker compose run -v '/tmp/cache/:/cache' -e 'CACHEDIR=/cache' busted-diff | tee /tmp/dockerlog
       - name: Generate artefact
         run: |
-          sed -n '/Savefile Diff for/, $p' /tmp/dockerlog | tee /tmp/artefact
+          sed -n '/Runtime comparison for/,/Savefile Diff for/{/Savefile Diff for/!p;}' /tmp/dockerlog > tee /tmp/artefact
+          sed -n '/Savefile Diff for/, $p' /tmp/dockerlog >> /tmp/artefact
           [ -s /tmp/artefact ] || rm /tmp/artefact
       - name: Upload artefact
         uses: actions/upload-artifact@v4
