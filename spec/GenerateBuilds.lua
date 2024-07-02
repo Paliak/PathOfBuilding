@@ -68,10 +68,22 @@ local function fetchBuilds(path)
 end
 
 for testBuild in fetchBuilds("../spec/TestBuilds") do
-    local filepath = (os.getenv("BUILDCACHEPREFIX") or "/tmp") .. "/" .. testBuild.filename
-    print("[+] Computing " .. filepath)
+    local filePath = (os.getenv("BUILDCACHEPREFIX") or "/tmp") .. "/" .. testBuild.filename
+    local startTime = GetTime()
+
+    -- Compute the build
+    print("[+] Computing " .. filePath)
     loadBuildFromXML(testBuild.xml)
-    local buildHnd = io.open(filepath .. ".build", "w+")
+    local calcDuration = startTime - GetTime()
+    print("[-] Computed " .. filePath " in " .. calcDuration .. "ms")
+
+    -- Save the computed build xml. Include full minuion and player outputs.
+    local buildHnd = io.open(filePath .. ".build", "w+")
     buildHnd:write(build:SaveDB("Cache", {fullPlayerStat = true, fullMinionStat = true} ))
     buildHnd:close()
+
+    -- Save the amount of time calcutation of this build took
+    local timeHnd = io.open(filePath .. ".time", "w+")
+    timeHnd:write(calcDuration)
+    timeHnd:close()
 end

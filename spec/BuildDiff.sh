@@ -39,6 +39,18 @@ then
     BUILDCACHEPREFIX="$CACHEDIR" busted --lua=luajit -r generate && date > "$CACHEDIR/$devsha" && echo "[+] Build cache computed for $devsha (devsha)" || exit $?
 fi
 
+for runTime in "$CACHEDIR"/*.time
+do
+    BASENAME=$(basename "$runTime")
+
+    DIFFOUTPUT=$(luajit spec/DiffRuntime.lua "/tmp/headsha/$BASENAME" "$runTime" "$BASENAME") || {
+        echo "## Runtime comparison for $BASENAME"
+        echo '```'
+        echo "$DIFFOUTPUT"
+        echo '```'
+    }
+done
+
 for build in "$CACHEDIR"/*.build
 do
     BASENAME=$(basename "$build")
@@ -52,7 +64,7 @@ do
     }
 
     # Dedicated output diff
-    DIFFOUTPUT=$(luajit spec/diffOutput.lua "/tmp/headsha/$BASENAME" "$build") || {
+    DIFFOUTPUT=$(luajit spec/DiffOutput.lua "/tmp/headsha/$BASENAME" "$build") || {
         echo "## Output Diff for $BASENAME"
         echo '```'
         echo "$DIFFOUTPUT"
