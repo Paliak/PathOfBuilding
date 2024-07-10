@@ -15,9 +15,10 @@ jobs:
         with:
           name: builds.txt
           if_no_artifact_found: warn
+          path: /tmp/latestbuildlist/
       - name: Update list
         run: >
-            cat builds.txt
+            cat /tmp/latestbuildlist/builds.txt
             <({ curl "https://pobarchives.com/api/builds?q=latest" & curl "https://pobarchives.com/api/builds?q=trending"; }
             | jq -r '.builds[].build_info.build_link')
             | sort -u
