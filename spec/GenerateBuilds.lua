@@ -77,12 +77,12 @@ for testBuild in fetchBuilds("../spec/TestBuilds") do
     local calcDuration = GetTime() - startTime
     print("[-] Computed " .. filePath .. " in " .. calcDuration .. "ms")
 
-    -- Save the computed build xml. Include full minuion and player outputs.
+    -- Save the computed build xml. Include full minion and player outputs.
     local buildHnd = io.open(filePath .. ".build", "w+")
     buildHnd:write(build:SaveDB("Cache", {fullPlayerStat = true, fullMinionStat = true} ))
     buildHnd:close()
 
-    -- Save the amount of time calcutation of this build took
+    -- Save the amount of time calculation of this build took
     local timeHnd = io.open(filePath .. ".time", "w+")
     timeHnd:write(calcDuration)
     timeHnd:close()

@@ -201,12 +201,12 @@ If you're on windows, consider downloading [git for windows](https://git-scm.com
 If you're using linux you can run the ./runtime/Path{space}of{space}Building.exe executable with wine. You will need to provide a valid wine path to the emmy lua debugger directory.
 
 ## Testing
-Pob uses two types of tests. Unit tests that test specifc calculations or mechanics and "build diff" tests that calculate the effect the changes have on a given list of builds.
+Pob uses two types of tests. Unit tests that test specific calculations or mechanics and "build diff" tests that calculate the effect the changes have on a given list of builds.
 While both can be ran locally it's recommended to use the provided docker image for both ease of use and to keep everyone on the same page.
 
 To run the unit tests run `docker compose up busted-tests`. This option uses the [Busted](https://olivinelabs.com/busted/) framework to test values returned by specific functions. For more details see the implementation of the tests in `spec/System/`.
 
-To run the build difference tests run `docker compose up busted-diff`. `busted-diff` busted diff first computes a list of builds found in `spec/builds.txt` and `spec/TestBuilds/` while checked out to the current working changes. Then it uses git to checkout the branch specified by `DEVREF` or `dev` by defualt and computes the same builds. Lastly it finds the differences in the outputs generated from both, does some post processing, and prints all of the information out.
+To run the build difference tests run `docker compose up busted-diff`. `busted-diff` busted diff first computes a list of builds found in `spec/builds.txt` and `spec/TestBuilds/` while checked out to the current working changes. Then it uses git to checkout the branch specified by `DEVREF` or `dev` by default and computes the same builds. Lastly it finds the differences in the outputs generated from both, does some post processing, and prints all of the information out.
 
 `busted-diff` supports the following options through environment variables:
 - `DEVREF`: Defines the branch to use as the reference against which to compare builds computed with new changes.
@@ -216,7 +216,7 @@ The following variables are meant to be internal only and only ever used with th
 - `CACHEDIR`: Defines the directory where the cache of computed builds using `DEVREF` should be stored.
 
 #### Saving output
-By defualt the output is not saved to a file but you can do so some your shell by either using `docker compose up busted-tests > log` (platform agnostic) or `docker compose up busted-tests | tee log` which will also allow you to see the output as it's being printed out (powershell/linux).
+By default the output is not saved to a file but you can do so some your shell by either using `docker compose up busted-tests > log` (platform agnostic) or `docker compose up busted-tests | tee log` which will also allow you to see the output as it's being printed out (powershell/linux).
 
 Additionally, the output from `busted-diff` can be quite noisy. If you'd like to only get a specific part of the output you can use to following:
 - `sed -n '/Runtime comparison for/,/Savefile Diff for/{/Savefile Diff for/!p;}' log` to only print out runtime information or nothing if nothing interesting is to be shown.
