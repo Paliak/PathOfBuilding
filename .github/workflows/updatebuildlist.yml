@@ -2,7 +2,7 @@
 name: Update build list for tests
 on:
   schedule:
-    - cron: 20 4 * * *
+    - cron: '20 4 * * *'
   workflow_dispatch:
 jobs:
   update-builds-list:
