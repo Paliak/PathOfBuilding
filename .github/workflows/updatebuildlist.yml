@@ -8,6 +8,8 @@ jobs:
   update-builds-list:
     runs-on: ubuntu-22.04
     steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v4
       - name: Install moreutils
         run: sudo apt-get install -y moreutils
       - name: Download latest build list
@@ -18,11 +20,11 @@ jobs:
           path: /tmp/latestbuildlist/
       - name: Update list
         run: >
-            cat /tmp/latestbuildlist/builds.txt
+            cat spec/builds.txt /tmp/latestbuildlist/builds.txt
             <({ curl "https://pobarchives.com/api/builds?q=latest" & curl "https://pobarchives.com/api/builds?q=trending"; }
             | jq -r '.builds[].build_info.build_link')
-            | sort -u
             | tail -n 500
+            | sort -u
             | sponge builds.txt
       - name: Print new builds list
         run: cat builds.txt
