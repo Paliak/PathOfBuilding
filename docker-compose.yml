@@ -20,7 +20,7 @@ services:
     environment: #Where in the container the folders are stored
       WORKDIR: /workdir
       HOME: /tmp
-      DEVREF: ${DEVREF:-dev}
+      DEVREF: ${DEVREF:-origin/dev}
       HEADREF: $HEADREF
     container_name: busted-diff
     tty: true
