@@ -23,7 +23,7 @@ local band = bit.band
 ---  retrieves a value specified by key from a cached version of skill
 ---  specified by @uuid or if not found in cache computes teh cache.
 --- @param env table
---- @param uuid string uuid identifier of the skill whose value to be returned
+--- @param activeSkill table active skill to be used as main when calculating output values
 --- @param ... table keys to values to be returned (Note: EmmyLua does not natively support documenting variadic parameters)
 --- @return table unpacked table containing the desired values
 local function getCachedOutputValue(env, activeSkill, ...)
@@ -1811,8 +1811,8 @@ function calcs.perform(env, skipEHP)
 				activeSkill.skillModList:NewMod("Multiplier:"..activeSkill.activeEffect.grantedEffect.name:gsub("%s+", "").."StageAfterFirst", "BASE", maximum, "Base")
 			end
 			if activeSkill.activeEffect.grantedEffect.name == "Penance Brand of Dissipation" and activeSkill.skillPart == 2 then
-				local rate, duration = getCachedOutputValue(env, activeSkill, "Speed", "Duration")
-				local ticks = m_min((m_floor(rate * duration) - 1), 19)
+				local activation_frequency, duration = getCachedOutputValue(env, activeSkill, "HitSpeed", "Duration") -- HitSpeed is the brand activation frequency
+				local ticks = m_min((m_floor(activation_frequency * duration) - 1), 19)
 				activeSkill.skillModList:NewMod("Multiplier:PenanceBrandofDissipationMaxStages", "BASE", ticks, "Base")
 				activeSkill.skillModList:NewMod("Multiplier:PenanceBrandofDissipationStageAfterFirst", "BASE", ticks, "Base")
 			end
