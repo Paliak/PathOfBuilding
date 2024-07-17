@@ -748,11 +748,11 @@ return {
 		{ breakdown = "ActiveTotemLimit" },
 		{ modName = { "ActiveTotemLimit", "ActiveBallistaLimit" }, cfg = "skill" }, 
 	}, },
-	{ label = "Totem Duration Mod", flagList = {"duration", "totem"}, { format = "x {4:output:TotemDurationMod}",
+	{ label = "Totem Dur. Mod", flagList = {"duration", "totem"}, { format = "x {4:output:TotemDurationMod}",
 		{ breakdown = "TotemDurationMod" }, 
 		{ modName = { "Duration", "PrimaryDuration", "TotemDuration" }, cfg = "skill" }, 
 	}, },
-	{ label = "Totem Duration", flagList = {"duration", "totem"}, { format = "x {4:output:TotemDuration}",
+	{ label = "Totem Duration", flagList = {"duration", "totem"}, { format = "{3:output:TotemDuration}s",
 		{ breakdown = "TotemDuration" },
 	}, },
 	{ label = "Totem Life Mod", flag = "totem", notFlag = "triggered", { format = "x {2:output:TotemLifeMod}", 
@@ -781,7 +781,7 @@ return {
 		{ breakdown = "TotemColdResist" },
 		{ modName = { "TotemColdResistMax", "TotemElementalResistMax", "TotemColdResist", "TotemElementalResist" }, },
 	}, },
-	{ label = "Totem Lightning Res", flag = "totem", notFlag = "triggered", { format = "{0:output:TotemLightningResist}% (+{0:output:TotemLightningResistOverCap}%)",
+	{ label = "Totem Light. Res", flag = "totem", notFlag = "triggered", { format = "{0:output:TotemLightningResist}% (+{0:output:TotemLightningResistOverCap}%)",
 		{ breakdown = "TotemLightningResist" },
 		{ modName = { "TotemLightningResistMax", "TotemElementalResistMax", "TotemLightningResist", "TotemElementalResist" }, },
 	}, },
@@ -1640,6 +1640,30 @@ return {
 		{ label = "Recovery modifiers", modName = "RageRecoveryRate" },
 	}, },
 } }
+} },
+{ 1, "Charges", 3, colorCodes.NORMAL, {{ defaultCollapsed = true, label = "Charges", data = {
+	extra = colorCodes.RAGE.."{0:output:EnduranceCharges}^7, "..colorCodes.EVASION.."{0:output:FrenzyCharges}^7, "..colorCodes.MANA.."{0:output:PowerCharges}",} },
+	{ defaultCollapsed = true, label = "Endurance", haveOutput="UseEnduranceCharges", data = {
+	extra = colorCodes.RAGE.."{0:output:EnduranceCharges} ^7/ "..colorCodes.RAGE.."{0:output:EnduranceChargesMax}",
+		{ label = "Max", { format = "{0:output:EnduranceChargesMax}", { modName = { "EnduranceChargesMax", "PartyMemberMaximumEnduranceChargesEqualToYours" } } }, },
+		{ label = "Current", { format = "{0:output:EnduranceCharges}", { modName = { "EnduranceChargesMin", "HaveMaximumEnduranceCharges" } } }, },
+		{ label = "Spendable", { format = "{0:output:RemovableEnduranceCharges}", }, },
+		{ label = "Duration", { format = "{0:output:EnduranceChargesDuration}s", { modName = { "EnduranceChargesDuration", "ChargeDuration" } } }, },
+	} },
+	{ defaultCollapsed = true, label = "Frenzy", haveOutput="UseFrenzyCharges", data = {
+	extra = colorCodes.EVASION.."{0:output:FrenzyCharges} ^7/ "..colorCodes.EVASION.."{0:output:FrenzyChargesMax}",
+		{ label = "Max", { format = "{0:output:FrenzyChargesMax}", { modName = { "FrenzyChargesMax" } } }, },
+		{ label = "Current", { format = "{0:output:FrenzyCharges}", { modName = { "FrenzyChargesMin", "HaveMaximumFrenzyCharges" } } }, },
+		{ label = "Spendable", { format = "{0:output:RemovableFrenzyCharges}", }, },
+		{ label = "Duration", { format = "{0:output:FrenzyChargesDuration}s", { modName = { "FrenzyChargesDuration", "ChargeDuration" } } }, },
+	} },
+	{ defaultCollapsed = true, label = "Power", haveOutput="UsePowerCharges", data = {
+	extra = colorCodes.MANA.."{0:output:PowerCharges} ^7/ "..colorCodes.MANA.."{0:output:PowerChargesMax}",
+		{ label = "Max", { format = "{0:output:PowerChargesMax}", { modName = { "PowerChargesMax" } } }, },
+		{ label = "Current", { format = "{0:output:PowerCharges}", { modName = { "PowerChargesMin", "HaveMaximumPowerCharges" } } }, },
+		{ label = "Spendable", { format = "{0:output:RemovablePowerCharges}", }, },
+		{ label = "Duration", { format = "{0:output:PowerChargesDuration}s", { modName = { "PowerChargesDuration", "ChargeDuration" } } }, },
+	} },
 } },
 -- misc defense
 { 1, "MiscDefences", 3, colorCodes.DEFENCE, {{ defaultCollapsed = false, label = "Other Defences", data = {
