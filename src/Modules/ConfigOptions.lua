@@ -31,10 +31,10 @@ end
 
 local function banditTooltip(tooltip, mode, index, value)
 	local banditBenefits = {
-		["None"] = "Grants 2 Passive Skill Points",
-		["Oak"] = "Regenerate 1% of Life per second\n2% additional Physical Damage Reduction\n20% increased Physical Damage",
-		["Kraityn"] = "6% increased Attack and Cast Speed\n10% chance to Avoid Elemental Ailments\n6% increased Movement Speed",
-		["Alira"] = "Regenerate 5 Mana per second\n+20% to Critical Strike Multiplier\n+15% to all Elemental Resistances",
+		["None"] = "Grants 1 Passive Skill Point",
+		["Oak"] = "+40 to Maximum Life",
+		["Kraityn"] = "8% increased Movement Speed",
+		["Alira"] = "+15% to all Elemental Resistances",
 	}
 	local applyModes = { BODY = true, HOVER = true }
 	tooltip:Clear()
@@ -302,8 +302,12 @@ return {
 	{ var = "targetBrandedEnemy", type = "check", label = "Skill is targeting the Branded enemy", ifCond = "TargetingBrandedEnemy", defaultState = true, apply = function(val, modList, enemyModList)
 		modList:NewMod("Condition:TargetingBrandedEnemy", "FLAG", true, "Config")
 	end },
-	{ var = "BrandsInLastQuarter", type = "check", label = "Last 25% of Attached Duration?", ifCond = "BrandLastQuarter", apply = function(val, modList, enemyModList)
+	{ var = "BrandsInLastQuarter", type = "check", label = "Last 25% of attached duration?", ifCond = "BrandLastQuarter", apply = function(val, modList, enemyModList)
 		modList:NewMod("Condition:BrandLastQuarter", "FLAG", true, "Config")
+		modList:NewMod("Condition:BrandLastHalf", "FLAG", true, "Config")
+	end },
+	{ var = "BrandsInLastHalf", type = "check", label = "Last 50% of attached duration?", ifCond = "BrandLastHalf", apply = function(val, modList, enemyModList)
+		modList:NewMod("Condition:BrandLastHalf", "FLAG", true, "Config")
 	end },
 	{ label = "Carrion Golem:", ifSkill = "Summon Carrion Golem", includeTransfigured = true },
 	{ var = "carrionGolemNearbyMinion", type = "count", label = "# of Nearby Non-Golem Minions:", ifSkill = "Summon Carrion Golem", includeTransfigured = true, apply = function(val, modList, enemyModList)
@@ -1464,6 +1468,9 @@ Huge sets the radius to 11.
 	end },
 	{ var = "buffFanaticism", type = "check", label = "Do you have Fanaticism?", ifFlag = "Condition:CanGainFanaticism", tooltip = "This will enable the Fanaticism buff itself. (Grants 75% more cast speed, reduced skill cost, and increased area of effect)", apply = function(val, modList, enemyModList)
 		modList:NewMod("Condition:Fanaticism", "FLAG", true, "Config", { type = "Condition", var = "Combat" }, { type = "Condition", var = "CanGainFanaticism" })
+	end },
+	{ var = "conditionHitsAlwaysStun", type = "check", label = "Do your hits always stun?", ifFlag = "Condition:maceMasteryStunCullSpecced", tooltip = "This enables the conditional culling strike from the mace mastery.", apply = function(val, modList, enemyModList)
+		modList:NewMod("CullPercent", "MAX", 10, "Config", { type = "Condition", var = "Combat" }, {type = "Condition", var = "maceMasteryStunCullSpecced"})
 	end },
 	{ var = "multiplierPvpTvalueOverride", type = "count", label = "PvP Tvalue override (ms):", ifFlag = "isPvP", tooltip = "Tvalue in milliseconds. This overrides the Tvalue of a given skill, for instance any with fixed Tvalues, or modified Tvalues", apply = function(val, modList, enemyModList)
 		modList:NewMod("MultiplierPvpTvalueOverride", "BASE", val, "Config", { type = "Condition", var = "Combat" })
