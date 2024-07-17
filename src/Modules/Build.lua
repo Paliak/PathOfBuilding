@@ -194,7 +194,7 @@ function buildMode:Init(dbFileName, buildName, buildXML, convertBuild)
 				end
 				if mult > 0.01 then
 					local line = level
-					if level >= 68 then 
+					if level >= 68 then
 						line = line .. string.format(" (Tier %d)", level - 67)
 					end
 					line = line .. string.format(": %.1f%%", mult * 100)
@@ -215,7 +215,7 @@ function buildMode:Init(dbFileName, buildName, buildXML, convertBuild)
 					self.spec:SelectClass(value.classId)
 					self.spec:AddUndoState()
 					self.spec:SetWindowTitleWithBuildClass()
-					self.buildFlag = true					
+					self.buildFlag = true
 				end)
 			end
 		end
@@ -272,19 +272,22 @@ function buildMode:Init(dbFileName, buildName, buildXML, convertBuild)
 		{ stat = "IgniteDPS", label = "Ignite DPS", fmt = ".1f", compPercent = true, warnFunc = function(v) return v >= data.misc.DotDpsCap and "Ignite DPS exceeds in game limit" end },
 		{ stat = "IgniteDamage", label = "Total Damage per Ignite", fmt = ".1f", compPercent = true, flag = "showAverage" },
 		{ stat = "BurningGroundDPS", label = "Burning Ground DPS", fmt = ".1f", compPercent = true, warnFunc = function(v,o) return v >= data.misc.DotDpsCap and "Burning Ground DPS exceeds in game limit" end },
+		{ stat = "MirageBurningGroundDPS", label = "Mirage Burning Ground DPS", fmt = ".1f", compPercent = true, condFunc = function(v,o) return v ~= o.BurningGroundDPS end, warnFunc = function(v,o) return v >= data.misc.DotDpsCap and "Mirage Burning Ground DPS exceeds in game limit" end },
 		{ stat = "WithIgniteDPS", label = "Total DPS inc. Ignite", fmt = ".1f", compPercent = true, flag = "notAverage", condFunc = function(v,o) return v ~= o.TotalDPS and (o.TotalDot or 0) == 0 and (o.PoisonDPS or 0) == 0 and (o.ImpaleDPS or 0) == 0 and (o.BleedDPS or 0) == 0 end },
 		{ stat = "WithIgniteAverageDamage", label = "Average Dmg. inc. Ignite", fmt = ".1f", compPercent = true },
 		{ stat = "PoisonDPS", label = "Poison DPS", fmt = ".1f", compPercent = true, warnFunc = function(v) return v >= data.misc.DotDpsCap and "Poison DPS exceeds in game limit" end },
 		{ stat = "CausticGroundDPS", label = "Caustic Ground DPS", fmt = ".1f", compPercent = true, warnFunc = function(v,o) return v >= data.misc.DotDpsCap and "Caustic Ground DPS exceeds in game limit" end },
+		{ stat = "MirageCausticGroundDPS", label = "Mirage Caustic Ground DPS", fmt = ".1f", compPercent = true, condFunc = function(v,o) return v ~= o.CausticGroundDPS end, warnFunc = function(v,o) return v >= data.misc.DotDpsCap and "Mirage Caustic Ground DPS exceeds in game limit" end },
 		{ stat = "PoisonDamage", label = "Total Damage per Poison", fmt = ".1f", compPercent = true },
 		{ stat = "WithPoisonDPS", label = "Total DPS inc. Poison", fmt = ".1f", compPercent = true, flag = "poison", flag = "notAverage", condFunc = function(v,o) return v ~= o.TotalDPS and (o.TotalDot or 0) == 0 and (o.IgniteDPS or 0) == 0 and (o.ImpaleDPS or 0) == 0 and (o.BleedDPS or 0) == 0 end },
 		{ stat = "DecayDPS", label = "Decay DPS", fmt = ".1f", compPercent = true },
-		{ stat = "TotalDotDPS", label = "Total DoT DPS", fmt = ".1f", compPercent = true, condFunc = function(v,o) return o.showTotalDotDPS or ( v ~= o.TotalDot and v ~= o.TotalPoisonDPS and v ~= o.CausticGroundDPS and v ~= (o.TotalIgniteDPS or o.IgniteDPS) and v ~= o.BurningGroundDPS and v ~= o.BleedDPS and v~= o.CorruptingBloodDPS ) end, warnFunc = function(v) return v >= data.misc.DotDpsCap and "DoT DPS exceeds in game limit" end },
+		{ stat = "TotalDotDPS", label = "Total DoT DPS", fmt = ".1f", compPercent = true, condFunc = function(v,o) return o.showTotalDotDPS or ( v ~= o.TotalDot and v ~= o.TotalPoisonDPS and v ~= o.CausticGroundDPS and v ~= (o.TotalIgniteDPS or o.IgniteDPS) and v ~= o.BurningGroundDPS and v ~= o.BleedDPS and v~= o.CorruptingBloodDPS and v ~= o.MirageCausticGroundDPS and v ~= o.MirageBurningGroundDPS) end, warnFunc = function(v) return v >= data.misc.DotDpsCap and "DoT DPS exceeds in game limit" end },
 		{ stat = "ImpaleDPS", label = "Impale Damage", fmt = ".1f", compPercent = true, flag = "impale", flag = "showAverage" },
 		{ stat = "WithImpaleDPS", label = "Damage inc. Impale", fmt = ".1f", compPercent = true, flag = "impale", flag = "showAverage", condFunc = function(v,o) return v ~= o.TotalDPS and (o.TotalDot or 0) == 0 and (o.IgniteDPS or 0) == 0 and (o.PoisonDPS or 0) == 0 and (o.BleedDPS or 0) == 0 end  },
 		{ stat = "ImpaleDPS", label = "Impale DPS", fmt = ".1f", compPercent = true, flag = "impale", flag = "notAverage" },
 		{ stat = "WithImpaleDPS", label = "Total DPS inc. Impale", fmt = ".1f", compPercent = true, flag = "impale", flag = "notAverage", condFunc = function(v,o) return v ~= o.TotalDPS and (o.TotalDot or 0) == 0 and (o.IgniteDPS or 0) == 0 and (o.PoisonDPS or 0) == 0 and (o.BleedDPS or 0) == 0 end },
-		{ stat = "MirageDPS", label = "Total Mirage DPS", fmt = ".1f", compPercent = true, condFunc = function(v,o) return v > 0 end },
+		{ stat = "MirageDPS", label = "Total Mirage DPS", fmt = ".1f", compPercent = true, flag = "mirageArcher", condFunc = function(v,o) return v > 0 end },
+		{ stat = "MirageDPS", label = "Total Wisp DPS", fmt = ".1f", compPercent = true, flag = "wisp", condFunc = function(v,o) return v > 0 end },
 		{ stat = "CullingDPS", label = "Culling DPS", fmt = ".1f", compPercent = true, condFunc = function(v,o) return (o.CullingDPS or 0) > 0 end },
 		{ stat = "ReservationDPS", label = "Reservation DPS", fmt = ".1f", compPercent = true, condFunc = function(v,o) return (o.ReservationDPS or 0) > 0 end },
 		{ stat = "CombinedDPS", label = "Combined DPS", fmt = ".1f", compPercent = true, flag = "notAverage", condFunc = function(v,o) return v ~= ((o.TotalDPS or 0) + (o.TotalDot or 0)) and v ~= o.WithImpaleDPS and ( o.showTotalDotDPS or ( v ~= o.WithPoisonDPS and v ~= o.WithIgniteDPS and v ~= o.WithBleedDPS ) ) end },
@@ -333,6 +336,8 @@ function buildMode:Init(dbFileName, buildName, buildXML, convertBuild)
 		{ stat = "LightningMaximumHitTaken", label = "Lightning Max Hit", fmt = ".0f", color = colorCodes.LIGHTNING, compPercent = true, condFunc = function(v,o) return o.LightningMaximumHitTaken ~= o.ColdMaximumHitTaken or o.LightningMaximumHitTaken ~= o.FireMaximumHitTaken end },
 		{ stat = "ChaosMaximumHitTaken", label = "Chaos Max Hit", fmt = ".0f", color = colorCodes.CHAOS, compPercent = true },
 		{ },
+		{ stat = "MainHand", childStat = "Accuracy", label = "MH Accuracy", fmt = "d", condFunc = function(v,o) return o.PreciseTechnique end, warnFunc = function(v,o) return v < o.Life and "You do not have enough Accuracy for Precise Technique" end, warnColor = true },
+		{ stat = "OffHand", childStat = "Accuracy", label = "OH Accuracy", fmt = "d", condFunc = function(v,o) return o.PreciseTechnique end, warnFunc = function(v,o) return v < o.Life and "You do not have enough Accuracy for Precise Technique" end, warnColor = true },
 		{ stat = "Life", label = "Total Life", fmt = "d", color = colorCodes.LIFE, compPercent = true },
 		{ stat = "Spec:LifeInc", label = "%Inc Life from Tree", fmt = "d%%", color = colorCodes.LIFE, condFunc = function(v,o) return v > 0 and o.Life > 1 end },
 		{ stat = "LifeUnreserved", label = "Unreserved Life", fmt = "d", color = colorCodes.LIFE, condFunc = function(v,o) return v < o.Life end, compPercent = true, warnFunc = function(v) return v <= 0 and "Your unreserved Life is below 1" end },
@@ -637,7 +642,7 @@ function buildMode:Init(dbFileName, buildName, buildXML, convertBuild)
 	self.legacyLoaders = { -- Special loaders for legacy sections
 		["Spec"] = self.treeTab,
 	}
-	
+
 	--special rebuild to properly initialise boss placeholders
 	self.configTab:BuildModList()
 
@@ -737,10 +742,10 @@ function buildMode:Init(dbFileName, buildName, buildXML, convertBuild)
 	self.abortSave = false
 end
 
-local acts = { 
-	[1] = { level = 1, questPoints = 0 }, 
-	[2] = { level = 12, questPoints = 2 }, 
-	[3] = { level = 22, questPoints = 3 }, 
+local acts = {
+	[1] = { level = 1, questPoints = 0 },
+	[2] = { level = 12, questPoints = 2 },
+	[3] = { level = 22, questPoints = 3 },
 	[4] = { level = 32, questPoints = 5 },
 	[5] = { level = 40, questPoints = 6 },
 	[6] = { level = 44, questPoints = 8 },
@@ -765,7 +770,7 @@ function buildMode:EstimatePlayerProgress()
 		act = act + 1
 		level = m_min(m_max(PointsUsed + 1 - acts[act].questPoints - actExtra(act, extra), acts[act].level), 100)
 	until act == 11 or level <= acts[act + 1].level
-	
+
 	if self.characterLevelAutoMode and self.characterLevel ~= level then
 		self.characterLevel = level
 		self.controls.characterLevel:SetText(self.characterLevel)
@@ -779,12 +784,12 @@ function buildMode:EstimatePlayerProgress()
 		or level < 75 and "\nLabyrinth: Merciless Lab"
 		or level < 90 and "\nLabyrinth: Uber Lab"
 		or ""
-	
+
 	if PointsUsed > usedMax then InsertIfNew(self.controls.warnings.lines, "You have too many passive points allocated") end
 	if AscUsed > ascMax then InsertIfNew(self.controls.warnings.lines, "You have too many ascendancy points allocated") end
 	if SecondaryAscUsed > secondaryAscMax then InsertIfNew(self.controls.warnings.lines, "You have too many secondary ascendancy points allocated") end
 	self.Act = level < 90 and act <= 10 and act or "Endgame"
-	
+
 	return string.format("%s%3d / %3d   %s%d / %d", PointsUsed > usedMax and colorCodes.NEGATIVE or "^7", PointsUsed, usedMax, AscUsed > ascMax and colorCodes.NEGATIVE or "^7", AscUsed, ascMax),
 		"Required Level: "..level.."\nEstimated Progress:\nAct: "..self.Act.."\nQuestpoints: "..acts[act].questPoints.."\nExtra Skillpoints: "..actExtra(act, extra)..labSuggest
 end
@@ -801,7 +806,7 @@ function buildMode:Shutdown()
 	if launch.devMode and (not main.disableDevAutoSave) and self.targetVersion and not self.abortSave then
 		if self.dbFileName then
 			self:SaveDBFile()
-		elseif self.unsaved then		
+		elseif self.unsaved then
 			self.dbFileName = main.buildPath.."~~temp~~.xml"
 			self.buildName = "~~temp~~"
 			self.dbFileSubPath = ""
@@ -862,7 +867,7 @@ function buildMode:Load(xml, fileName)
 	end
 end
 
-function buildMode:Save(xml)
+function buildMode:Save(xml, options)
 	xml.attrib = {
 		targetVersion = self.targetVersion,
 		viewMode = self.viewMode,
@@ -879,9 +884,10 @@ function buildMode:Save(xml)
 		t_insert(xml, { elem = "Spectre", attrib = { id = id } })
 	end
 	local addedStatNames = { }
-	for index, statData in ipairs(self.displayStats) do
+	for _, statData in ipairs(self.displayStats) do
 		if not statData.flag or self.calcsTab.mainEnv.player.mainSkill.skillFlags[statData.flag] then
-			if statData.stat and not addedStatNames[statData.stat] then
+			local statName = statData.stat and statData.stat..(statData.childStat or "")
+			if statName and not addedStatNames[statName] then
 				if statData.stat == "SkillDPS" then
 					local statVal = self.calcsTab.mainOutput[statData.stat]
 					for _, skillData in ipairs(statVal) do
@@ -895,33 +901,70 @@ function buildMode:Save(xml)
 						end
 						t_insert(xml, { elem = "FullDPSSkill", attrib = { stat = lhsString, value = tostring(skillData.dps * skillData.count), skillPart = skillData.skillPart or "", source = skillData.source or skillData.trigger or "" } })
 					end
-					addedStatNames[statData.stat] = true
+					addedStatNames[statName] = true
 				else
 					local statVal = self.calcsTab.mainOutput[statData.stat]
+					if statVal and statData.childStat then
+						statVal = statVal[statData.childStat]
+					end
 					if statVal and (statData.condFunc and statData.condFunc(statVal, self.calcsTab.mainOutput) or true) then
-						t_insert(xml, { elem = "PlayerStat", attrib = { stat = statData.stat, value = tostring(statVal) } })
-						addedStatNames[statData.stat] = true
+						t_insert(xml, { elem = "PlayerStat", attrib = { stat = statName, value = tostring(statVal) } })
+						addedStatNames[statName] = true
 					end
 				end
 			end
 		end
 	end
-	for index, stat in ipairs(self.extraSaveStats) do
-		local statVal = self.calcsTab.mainOutput[stat]
-		if statVal then
-			t_insert(xml, { elem = "PlayerStat", attrib = { stat = stat, value = tostring(statVal) } })
+
+	if options and options.fullPlayerStat then -- Save all of output
+		local q = {{value = self.calcsTab.mainOutput}}
+		while #q > 0 do
+			local current = table.remove(q)
+			for key, val in pairs(current.value) do
+				if not addedStatNames[key] then
+					if type(val) ~= "table"  then
+						t_insert(xml, { elem = "PlayerStat", attrib = { stat = (current.key or "")..key, value = tostring(val) } })
+					elseif key ~= "Minion" then -- Minion stats are processed lower with the MinionStat elem name
+						table.insert(q,{key = key, value = val})
+					end
+					addedStatNames[key] = true
+				end
+			end
+		end
+	else
+		for _, stat in ipairs(self.extraSaveStats) do
+			local statVal = self.calcsTab.mainOutput[stat]
+			if statVal then
+				t_insert(xml, { elem = "PlayerStat", attrib = { stat = stat, value = tostring(statVal) } })
+			end
 		end
 	end
+
 	if self.calcsTab.mainEnv.minion then
-		for index, statData in ipairs(self.minionDisplayStats) do
-			if statData.stat then
-				local statVal = self.calcsTab.mainOutput.Minion[statData.stat]
-				if statVal then
-					t_insert(xml, { elem = "MinionStat", attrib = { stat = statData.stat, value = tostring(statVal) } })
+		if options and options.fullMinionStat then
+			local q = {{value = self.calcsTab.mainOutput.Minion}}
+			while #q > 0 do
+				local current = table.remove(q)
+				for key, val in pairs(current.value) do
+					if type(val) ~= "table" then
+						t_insert(xml, { elem = "MinionStat", attrib = { stat = (current.key or "")..key, value = tostring(val) } })
+					else
+						table.insert(q,{key = key, value = val})
+					end
+				end
+			end
+		else
+			for _, statData in ipairs(self.minionDisplayStats) do
+				if statData.stat then
+					local statVal = self.calcsTab.mainOutput.Minion[statData.stat]
+					if statVal then
+						t_insert(xml, { elem = "MinionStat", attrib = { stat = statData.stat, value = tostring(statVal) } })
+					end
 				end
 			end
 		end
 	end
+
 	local timelessData = {
 		elem = "TimelessData",
 		attrib = {
@@ -1011,7 +1054,6 @@ function buildMode:OnFrame(inputEvents)
 	self.controls.secondaryAscendDrop.list = {{label = "None", ascendClassId = 0}, {label = "Warden", ascendClassId = 1}, {label = "Warlock", ascendClassId = 2}, {label = "Primalist", ascendClassId = 3}}
 	self.controls.secondaryAscendDrop:SelByValue(self.spec.curSecondaryAscendClassId, "ascendClassId")
 
-	local checkFabricatedGroups = self.buildFlag
 	if self.buildFlag then
 		-- Wipe Global Cache
 		wipeGlobalCache()
@@ -1038,12 +1080,6 @@ function buildMode:OnFrame(inputEvents)
 	-- Update contents of main skill dropdowns
 	self:RefreshSkillSelectControls(self.controls, self.mainSocketGroup, "")
 
-	-- Delete any possible fabricated groups
-	if checkFabricatedGroups then
-		deleteFabricatedGroup(self.skillsTab)
-		checkFabricatedGroups = false
-	end
-
 	-- Draw contents of current tab
 	local sideBarWidth = 312
 	local tabViewPort = {
@@ -1053,7 +1089,7 @@ function buildMode:OnFrame(inputEvents)
 		height = main.screenH - 32
 	}
 	if self.viewMode == "IMPORT" then
-		self.importTab:Draw(tabViewPort, inputEvents)  
+		self.importTab:Draw(tabViewPort, inputEvents)
 	elseif self.viewMode == "NOTES" then
 		self.notesTab:Draw(tabViewPort, inputEvents)
 	elseif self.viewMode == "PARTY" then
@@ -1202,7 +1238,7 @@ function buildMode:OpenSpectreLibrary()
 	for id in pairs(self.data.spectres) do
 		t_insert(sourceList, id)
 	end
-	table.sort(sourceList, function(a,b) 
+	table.sort(sourceList, function(a,b)
 		if self.data.minions[a].name == self.data.minions[b].name then
 			return a < b
 		else
@@ -1334,7 +1370,7 @@ function buildMode:FormatStat(statData, statVal, overCapStatVal, colorOverride)
 	if statData.label == "Unreserved Life" and statVal == 0 then
 		color = colorCodes.NEGATIVE
 	end
-	
+
 	local valStr = s_format("%"..statData.fmt, val)
 	valStr:gsub("%.", main.decimalSeparator)
 	valStr = color .. formatNumSep(valStr)
@@ -1355,11 +1391,15 @@ function buildMode:AddDisplayStatList(statList, actor)
 	for index, statData in ipairs(statList) do
 		if not statData.flag or actor.mainSkill.skillFlags[statData.flag] then
 			local labelColor = "^7"
-				if statData.color then
-					labelColor = statData.color
-				end
+			if statData.color then
+				labelColor = statData.color
+			end
 			if statData.stat then
 				local statVal = actor.output[statData.stat]
+				-- access output values that are one node deeper (statData.stat is a table e.g. output.MainHand.Accuracy vs output.Life)
+				if statVal and statData.childStat then
+					statVal = statVal[statData.childStat]
+				end
 				if statVal and ((statData.condFunc and statData.condFunc(statVal,actor.output)) or (not statData.condFunc and statVal ~= 0)) then
 					local overCapStatVal = actor.output[statData.overCapStat] or nil
 					if statData.stat == "SkillDPS" then
@@ -1408,6 +1448,9 @@ function buildMode:AddDisplayStatList(statList, actor)
 								colorOverride = colorCodes.NEGATIVE
 							end
 						end
+						if statData.warnFunc and statData.warnFunc(statVal, actor.output) and statData.warnColor then
+							colorOverride = colorCodes.NEGATIVE
+						end
 						t_insert(statBoxList, {
 							height = 16,
 							labelColor..statData.label..":",
@@ -1422,8 +1465,8 @@ function buildMode:AddDisplayStatList(statList, actor)
 					end
 				end
 			elseif statData.label and statData.condFunc and statData.condFunc(actor.output) then
-				t_insert(statBoxList, { 
-					height = 16, labelColor..statData.label..":", 
+				t_insert(statBoxList, {
+					height = 16, labelColor..statData.label..":",
 					"^7"..actor.output[statData.labelStat].."%^x808080" .. " (" .. statData.val  .. ")",})
 			elseif not statBoxList[#statBoxList] or statBoxList[#statBoxList][1] then
 				t_insert(statBoxList, { height = 6 })
@@ -1453,6 +1496,9 @@ function buildMode:AddDisplayStatList(statList, actor)
 	if actor.output.VixensTooMuchCastSpeedWarn then
 		InsertIfNew(self.controls.warnings.lines, "You may have too much cast speed or too little cooldown reduction to effectively use Vixen's Curse replacement")
 	end
+	if actor.output.VixenModeNoVixenGlovesWarn then
+		InsertIfNew(self.controls.warnings.lines, "Vixen's calculation mode for Doom Blast is selected but you do not have Vixen's Entrapment Embroidered Gloves equipped")
+	end
 end
 
 function buildMode:InsertItemWarnings()
@@ -1473,7 +1519,13 @@ function buildMode:RefreshStatList()
 	self.controls.warnings.lines = {}
 	local statBoxList = wipeTable(self.controls.statBox.list)
 	if self.calcsTab.mainEnv.player.mainSkill.infoMessage then
-		t_insert(statBoxList, { height = 14, align = "CENTER_X", x = 140, colorCodes.CUSTOM .. self.calcsTab.mainEnv.player.mainSkill.infoMessage})
+			if #self.calcsTab.mainEnv.player.mainSkill.infoMessage > 40 then
+				for line in string.gmatch(self.calcsTab.mainEnv.player.mainSkill.infoMessage, "([^:]+)") do
+					t_insert(statBoxList, { height = 14, align = "CENTER_X", x = 140, colorCodes.CUSTOM .. line})
+				end
+			else
+				t_insert(statBoxList, { height = 14, align = "CENTER_X", x = 140, colorCodes.CUSTOM .. self.calcsTab.mainEnv.player.mainSkill.infoMessage})
+			end
 		if self.calcsTab.mainEnv.player.mainSkill.infoMessage2 then
 			t_insert(statBoxList, { height = 14, align = "CENTER_X", x = 140, "^8" .. self.calcsTab.mainEnv.player.mainSkill.infoMessage2})
 		end
@@ -1481,7 +1533,14 @@ function buildMode:RefreshStatList()
 	if self.calcsTab.mainEnv.minion then
 		t_insert(statBoxList, { height = 18, "^7Minion:" })
 		if self.calcsTab.mainEnv.minion.mainSkill.infoMessage then
-			t_insert(statBoxList, { height = 14, align = "CENTER_X", x = 140, colorCodes.CUSTOM .. self.calcsTab.mainEnv.minion.mainSkill.infoMessage})
+			-- Split the line if too long
+			if #self.calcsTab.mainEnv.minion.mainSkill.infoMessage > 40 then
+				for line in string.gmatch(self.calcsTab.mainEnv.minion.mainSkill.infoMessage, "([^:]+)") do
+					t_insert(statBoxList, { height = 14, align = "CENTER_X", x = 140, colorCodes.CUSTOM .. line})
+				end
+			else
+				t_insert(statBoxList, { height = 14, align = "CENTER_X", x = 140, colorCodes.CUSTOM .. self.calcsTab.mainEnv.minion.mainSkill.infoMessage})
+			end
 			if self.calcsTab.mainEnv.minion.mainSkill.infoMessage2 then
 				t_insert(statBoxList, { height = 14, align = "CENTER_X", x = 140, "^8" .. self.calcsTab.mainEnv.minion.mainSkill.infoMessage2})
 			end
@@ -1501,7 +1560,7 @@ end
 function buildMode:CompareStatList(tooltip, statList, actor, baseOutput, compareOutput, header, nodeCount)
 	local count = 0
 	for _, statData in ipairs(statList) do
-		if statData.stat and (not statData.flag or actor.mainSkill.skillFlags[statData.flag]) and statData.stat ~= "SkillDPS" then
+		if statData.stat and (not statData.flag or actor.mainSkill.skillFlags[statData.flag]) and not statData.childStat and statData.stat ~= "SkillDPS" then
 			local statVal1 = compareOutput[statData.stat] or 0
 			local statVal2 = baseOutput[statData.stat] or 0
 			local diff = statVal1 - statVal2
@@ -1575,7 +1634,7 @@ do
 			if omni and (omni > 0 or omni > self.calcsTab.mainOutput.Omni) then
 				t_insert(req, s_format("%s%d ^x7F7F7FOmni", main:StatColor(omni, 0, self.calcsTab.mainOutput.Omni), omni))
 			end
-		else 
+		else
 			if str and (str > 14 or str > self.calcsTab.mainOutput.Str) then
 				t_insert(req, s_format("%s%d ^x7F7F7FStr", main:StatColor(str, strBase, self.calcsTab.mainOutput.Str), str))
 			end
@@ -1585,11 +1644,11 @@ do
 			if int and (int > 14 or int > self.calcsTab.mainOutput.Int) then
 				t_insert(req, s_format("%s%d ^x7F7F7FInt", main:StatColor(int, intBase, self.calcsTab.mainOutput.Int), int))
 			end
-		end	
+		end
 		if req[1] then
 			tooltip:AddLine(16, "^x7F7F7FRequires "..table.concat(req, "^x7F7F7F, "))
 			tooltip:AddSeparator(10)
-		end	
+		end
 		wipeTable(req)
 	end
 end
@@ -1636,20 +1695,20 @@ function buildMode:LoadDBFile()
 	return self:LoadDB(xmlText, self.dbFileName)
 end
 
-function buildMode:SaveDB(fileName)
+function buildMode:SaveDB(fileName, options)
 	local dbXML = { elem = "PathOfBuilding" }
 
 	-- Save Build section first
 	do
 		local node = { elem = "Build" }
-		self:Save(node)
+		self:Save(node, options)
 		t_insert(dbXML, node)
 	end
 
 	-- Call on all savers to save their data in their respective sections
 	for elem, saver in pairs(self.savers) do
 		local node = { elem = elem }
-		saver:Save(node)
+		saver:Save(node, options)
 		t_insert(dbXML, node)
 	end
 
@@ -1661,7 +1720,6 @@ function buildMode:SaveDB(fileName)
 		return xmlText
 	end
 end
-
 
 function buildMode:SaveDBFile()
 	if not self.dbFileName then
