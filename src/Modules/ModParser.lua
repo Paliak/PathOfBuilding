@@ -254,6 +254,8 @@ local modNameList = {
 	["physical damage taken from hits"] = "PhysicalDamageTakenWhenHit",
 	["physical damage taken from attacks"] = "PhysicalDamageTakenFromAttacks",
 	["physical damage taken from attack hits"] = "PhysicalDamageTakenFromAttacks",
+	["physical damage taken from projectile attacks"] = "PhysicalDamageTakenFromProjectileAttacks",
+	["physical damage taken from projectile attack hits"] = "PhysicalDamageTakenFromProjectileAttacks",
 	["physical damage taken over time"] = "PhysicalDamageTakenOverTime",
 	["physical damage over time taken"] = "PhysicalDamageTakenOverTime",
 	["physical damage over time damage taken"] = "PhysicalDamageTakenOverTime",
@@ -356,6 +358,7 @@ local modNameList = {
 	["to avoid status ailments"] = "AvoidAilments",
 	["to avoid bleeding"] = "AvoidBleed",
 	["to avoid being poisoned"] = "AvoidPoison",
+	["to avoid being impaled"] = "AvoidImpale",
 	["damage is taken from mana before life"] = "DamageTakenFromManaBeforeLife",
 	["lightning damage is taken from mana before life"] = "LightningDamageTakenFromManaBeforeLife",
 	["damage taken from mana before life"] = "DamageTakenFromManaBeforeLife",
@@ -728,6 +731,7 @@ local modNameList = {
 	["rarity of items found"] = "LootRarity",
 	["rarity of items dropped"] = "LootRarity",
 	["quantity of items found"] = "LootQuantity",
+	["quantity of items dropped"] = "LootQuantity",
 	["item quantity"] = "LootQuantity",
 	["strength requirement"] = "StrRequirement",
 	["dexterity requirement"] = "DexRequirement",
@@ -749,6 +753,7 @@ local modNameList = {
 	["amount recovered"] = "FlaskRecovery",
 	["life recovered"] = "FlaskRecovery",
 	["life recovery from flasks used"] = "FlaskLifeRecovery",
+	["recovery"] = "FlaskLifeRecoveryLowLife",
 	["mana recovered"] = "FlaskRecovery",
 	["life recovery from flasks"] = "FlaskLifeRecovery",
 	["mana recovery from flasks"] = "FlaskManaRecovery",
@@ -1454,6 +1459,7 @@ local modTagList = {
 		{ type = "StatThreshold", stat = "EvasionOnGloves", threshold = 1},
 		{ type = "StatThreshold", stat = "EvasionOnBoots", threshold = 1} } },
 	-- Player status conditions
+	["if used while on low life"] = { tag = { type = "Condition", var = "LowLife" } },
 	["wh[ie][ln]e? on low life"] = { tag = { type = "Condition", var = "LowLife" } },
 	["on reaching low life"] = { tag = { type = "Condition", var = "LowLife" } },
 	["wh[ie][ln]e? not on low life"] = { tag = { type = "Condition", var = "LowLife", neg = true } },
@@ -1641,8 +1647,9 @@ local modTagList = {
 	["if you[' ]h?a?ve warcried in the past 8 seconds"] = { tag = { type = "Condition", var = "UsedWarcryInPast8Seconds" } },
 	["for each second you've been affected by a warcry buff, up to a maximum of (%d+)%%"] = function(num) return { tag = { type = "Multiplier", var = "AffectedByWarcryBuffDuration", limit = num, limitTotal = true } } end,
 	["for each of your mines detonated recently, up to (%d+)%%"] = function(num) return { tag = { type = "Multiplier", var = "MineDetonatedRecently", limit = num, limitTotal = true } } end,
-	["for each mine detonated recently, up to (%d+)%%"] = function(num) return { tag = { type = "Multiplier", var = "MineDetonatedRecently", limit = num, limitTotal = true } } end,
-	["for each mine detonated recently, up to (%d+)%% per second"] = function(num) return { tag = { type = "Multiplier", var = "MineDetonatedRecently", limit = num, limitTotal = true } } end,
+	["[fp][oe]r ?e?a?c?h? mine detonated recently, up to (%d+)%%"] = function(num) return { tag = { type = "Multiplier", var = "MineDetonatedRecently", limit = num, limitTotal = true } } end,
+	["[fp][oe]r ?e?a?c?h? mine detonated recently, up to (%d+)%% per second"] = function(num) return { tag = { type = "Multiplier", var = "MineDetonatedRecently", limit = num, limitTotal = true } } end,
+	["[fp][oe]r ?e?a?c?h? mine detonated recently"] = { tag = { type = "Multiplier", var = "MineDetonatedRecently" } },
 	["for each of your traps triggered recently, up to (%d+)%%"] = function(num) return { tag = { type = "Multiplier", var = "TrapTriggeredRecently", limit = num, limitTotal = true } } end,
 	["for each trap triggered recently, up to (%d+)%%"] = function(num) return { tag = { type = "Multiplier", var = "TrapTriggeredRecently", limit = num, limitTotal = true } } end,
 	["for each trap triggered recently, up to (%d+)%% per second"] = function(num) return { tag = { type = "Multiplier", var = "TrapTriggeredRecently", limit = num, limitTotal = true } } end,
@@ -1766,6 +1773,8 @@ local modTagList = {
 	["against enemies on consecrated ground"] = { tag = { type = "ActorCondition", actor = "enemy", var = "OnConsecratedGround" } },
 	["if (%d+)%% of curse duration expired"] = function(num) return { tag = { type = "MultiplierThreshold", actor = "enemy", var = "CurseExpired", threshold = num } } end,
 	["against enemies with (%w+) exposure"] = function(element) return { tag = { type = "ActorCondition", actor = "enemy", var = "Has"..(firstToUpper(element).."Exposure") } } end,
+	["by s?l?a?i?n? ?frozen enemies"] = { tag = { type = "ActorCondition", actor = "enemy", var = "Frozen" } },
+	["by s?l?a?i?n? ?shocked enemies"] = { tag = { type = "ActorCondition", actor = "enemy", var = "Shocked" } },
 	-- Enemy multipliers
 	["per freeze, shock [ao][nr]d? ignite on enemy"] = { tag = { type = "Multiplier", var = "FreezeShockIgniteOnEnemy" } },
 	["per poison affecting enemy"] = { tag = { type = "Multiplier", actor = "enemy", var = "PoisonStack" } },
@@ -2169,6 +2178,11 @@ local specialModList = {
 			{ type = "StatThreshold", stat = "EnergyShieldOnBoots", threshold = 1}
 		)
 	} end,
+	["brands have (%d+)%% increased area of effect if (%d+)%% of attached duration expired"] = function(num) return { mod("AreaOfEffect", "INC", num, { type = "Condition", var = "BrandLastHalf" }, { type = "SkillType", skillType = SkillType.Brand }) } end,
+	["corrupted blood cannot be inflicted on you"] = { flag("CorruptedBloodImmune") },
+	["you cannot be hindered"] = { flag("HinderImmune") },
+	["you cannot be maimed"] = { flag("MaimImmune") },
+	["you cannot be impaled"] = { flag("ImpaleImmune") },
 	-- Exerted Attacks
 	["exerted attacks deal (%d+)%% increased damage"] = function(num) return { mod("ExertIncrease", "INC", num, nil, ModFlag.Attack, 0) } end,
 	["exerted attacks have (%d+)%% chance to deal double damage"] = function(num) return { mod("ExertDoubleDamageChance", "BASE", num, nil, ModFlag.Attack, 0) } end,
@@ -2635,7 +2649,7 @@ local specialModList = {
 	["gain life from leech instantly from hits with this weapon"] = { mod("InstantLifeLeech", "BASE", 100, { type = "Condition", var = "{Hand}Attack" }, { type = "SkillType", skillType = SkillType.Attack }) },
 	["(%d+)%% of leech from hits with this weapon is instant per enemy power"] = function(num) return { mod("InstantLifeLeech", "BASE", num, nil, ModFlag.Hit, { type = "Condition", var = "{Hand}Attack" }, { type = "SkillType", skillType = SkillType.Attack }, { type = "Multiplier", var = "EnemyPower"}) } end,
 	["instant recovery"] = {  mod("FlaskInstantRecovery", "BASE", 100) },
-	["life flasks used while on low life apply recovery instantly"] = { mod("LifeFlaskInstantRecovery", "BASE", 100, { type = "Condition", var = "LowMana" }) },
+	["life flasks used while on low life apply recovery instantly"] = { mod("LifeFlaskInstantRecovery", "BASE", 100, { type = "Condition", var = "LowLife" }) },
 	["mana flasks used while on low mana apply recovery instantly"] = { mod("ManaFlaskInstantRecovery", "BASE", 100, { type = "Condition", var = "LowMana" }) },
 	["(%d+)%% of recovery applied instantly"] = function(num) return { mod("FlaskInstantRecovery", "BASE", num) } end,
 	["has no attribute requirements"] = { flag("NoAttributeRequirements") },
@@ -3609,6 +3623,7 @@ local specialModList = {
 	["curses are inflicted on you instead of linked targets"] = { mod("ExtraLinkEffect", "LIST", { mod = flag("CurseImmune"), }), },
 	["elemental ailments are inflicted on you instead of linked targets"] = { mod("ExtraLinkEffect", "LIST", { mod = flag("ElementalAilmentImmune") }) },
 	["non%-unique utility flasks you use apply to linked targets"] = { mod("ExtraLinkEffect", "LIST", { mod = mod("ParentNonUniqueFlasksAppliedToYou", "FLAG", true, { type = "GlobalEffect", effectType = "Global", unscalable = true } ), }) },
+	["gain unholy might on block for (%d) seconds"] = { flag("Condition:UnholyMight", { type = "Condition", var = "BlockedRecently"}), flag("Condition:CanWither", { type = "Condition", var = "BlockedRecently"}), },
 	-- Traps, Mines and Totems
 	["traps and mines deal (%d+)%-(%d+) additional physical damage"] = function(_, min, max) return { mod("PhysicalMin", "BASE", tonumber(min), nil, 0, bor(KeywordFlag.Trap, KeywordFlag.Mine)), mod("PhysicalMax", "BASE", tonumber(max), nil, 0, bor(KeywordFlag.Trap, KeywordFlag.Mine)) } end,
 	["traps and mines deal (%d+) to (%d+) additional physical damage"] = function(_, min, max) return { mod("PhysicalMin", "BASE", tonumber(min), nil, 0, bor(KeywordFlag.Trap, KeywordFlag.Mine)), mod("PhysicalMax", "BASE", tonumber(max), nil, 0, bor(KeywordFlag.Trap, KeywordFlag.Mine)) } end,
@@ -3862,6 +3877,8 @@ local specialModList = {
 	["projectiles deal (%d+)%% increased damage with hits and ailments for each time they have chained"] = function(num) return { mod("Damage", "INC", num, nil, 0, bor(KeywordFlag.Hit, KeywordFlag.Ailment), { type = "PerStat", stat = "Chain" }, { type = "SkillType", skillType = SkillType.Projectile }) } end,
 	["projectiles deal (%d+)%% increased damage with hits and ailments for each enemy pierced"] = function(num) return { mod("Damage", "INC", num, nil, 0, bor(KeywordFlag.Hit, KeywordFlag.Ailment), { type = "PerStat", stat = "PiercedCount" }, { type = "SkillType", skillType = SkillType.Projectile }) } end,
 	["(%d+)%% increased bonuses gained from equipped quiver"] = function(num) return {mod("EffectOfBonusesFromQuiver", "INC", num)} end,
+	-- Strike Skills
+	["non%-vaal strike skills target (%d+) additional nearby enem[yi]e?s?"] = function(num) return { mod("AdditionalStrikeTarget", "BASE", num, { type = "SkillType", skillType = SkillType.MeleeSingleTarget}, { type = "SkillType", skillType = SkillType.Vaal, neg = true}) } end,
 	-- Leech/Gain on Hit/Kill
 	["cannot leech life"] = { flag("CannotLeechLife") },
 	["cannot leech mana"] = { flag("CannotLeechMana") },
@@ -4051,7 +4068,9 @@ local specialModList = {
 	["cannot be stunned when on low life"] = { flag("StunImmune", { type = "Condition", var = "LowLife" }), },
 	["cannot be stunned if you haven't been hit recently"] = { flag("StunImmune", { type = "Condition", var = "BeenHitRecently", neg = true }), },
 	["cannot be stunned if you have at least (%d+) crab barriers"] = function(num) return { flag("StunImmune", { type = "StatThreshold", stat = "CrabBarriers", threshold = num }), } end,
-	["cannot be blinded"] = { flag("Condition:CannotBeBlinded") },
+	["cannot be blinded"] = { flag("Condition:CannotBeBlinded"), flag("BlindImmune") },
+	["cannot be blinded while affected by precision"] = { flag("Condition:CannotBeBlinded", { type = "Condition", var = "AffectedByPrecision"}), flag("BlindImmune", { type = "Condition", var = "AffectedByPrecision"}) },
+	["cannot be knocked back"] = { flag("KnockbackImmune") },
 	["cannot be shocked"] = { flag("ShockImmune") },
 	["immun[ei]t?y? to shock"] = { flag("ShockImmune"), },
 	["cannot be frozen"] = { flag("FreezeImmune"), },
@@ -4071,6 +4090,7 @@ local specialModList = {
 	["cannot be shocked while at maximum power charges"] = { flag("ShockImmune", {type = "StatThreshold", stat = "PowerCharges", thresholdStat = "PowerChargesMax" }) },
 	["you cannot be shocked while at maximum endurance charges"] = { flag("ShockImmune", {type = "StatThreshold", stat = "EnduranceCharges", thresholdStat = "EnduranceChargesMax" }) },
 	["you cannot be shocked while chilled"] = { flag("ShockImmune", {type = "Condition", var = "Chilled" }) },
+	["you cannot be shocked while frozen"] = { flag("ShockImmune", {type = "Condition", var = "Frozen" }) },
 	["cannot be shocked while chilled"] = { flag("ShockImmune", {type = "Condition", var = "Chilled" }) },
 	["cannot be shocked if intelligence is higher than strength"] = { flag("ShockImmune", { type = "Condition", var = "IntHigherThanStr" }) },
 	["cannot be frozen if dexterity is higher than intelligence"] = { flag("FreezeImmune", { type = "Condition", var = "DexHigherThanInt" }) },
@@ -4079,6 +4099,7 @@ local specialModList = {
 	["cannot be chilled while burning"] = { flag("ChillImmune", { type = "Condition", var = "Burning" }) },
 	["cannot be chilled while you have onslaught"] = { flag("ChillImmune", { type = "Condition", var = "Onslaught" }) },
 	["cannot be chilled during onslaught"] = { flag("ChillImmune", { type = "Condition", var = "Onslaught" }) },
+	["cannot be frozen or chilled if you've used a fire skill recently"] = { flag("FreezeImmune", {type = "Condition", var = "UsedFireSkillRecently"}), flag("ChillImmune", {type = "Condition", var = "UsedFireSkillRecently"}) },
 	["cannot be inflicted with bleeding"] = { flag("BleedImmune") },
 	["bleeding cannot be inflicted on you"] = { flag("BleedImmune") },
 	["you are immune to bleeding"] = { flag("BleedImmune") },
@@ -4086,6 +4107,7 @@ local specialModList = {
 	["immune to poison if equipped helmet has higher evasion rating than armour"] = { flag("PoisonImmune", { type = "Condition", var = "HelmetEvasionHigherThanArmour" }) },
 	["immun[ei]t?y? to bleeding and corrupted blood during f?l?a?s?k? ?effect"] = { flag("BleedImmune", { type = "Condition", var = "UsingFlask" }) },
 	["immun[ei]t?y? to poison"] = { flag("PoisonImmune") },
+	["cannot be poisoned"] = { flag("PoisonImmune") },
 	["cannot be poisoned while bleeding"] = { flag("PoisonImmune", { type = "Condition", var = "Bleeding" }) },
 	["immun[ei]t?y? to poison during f?l?a?s?k? ?effect"] = { flag("PoisonImmune", { type = "Condition", var = "UsingFlask" }) },
 	["immun[ei]t?y? to shock during f?l?a?s?k? ?effect"] = { flag("ShockImmune", { type = "Condition", var = "UsingFlask" }) },
@@ -4127,6 +4149,7 @@ local specialModList = {
 	["unaffected by curses"] = { mod("CurseEffectOnSelf", "MORE", -100, { type = "GlobalEffect", effectType = "Global", unscalable = true }) },
 	["unaffected by curses while affected by zealotry"] = { mod("CurseEffectOnSelf", "MORE", -100, { type = "Condition", var = "AffectedByZealotry" }, { type = "GlobalEffect", effectType = "Global", unscalable = true }) },
 	["immun[ei]t?y? to curses while you have at least (%d+) rage"] = function(num) return { flag("CurseImmune", { type = "MultiplierThreshold", var = "Rage", threshold = num }) } end,
+	["you cannot be cursed with silence"] = { flag("SilenceImmune") },
 	["unaffected by ignite"] = { mod("SelfIgniteEffect", "MORE", -100) },
 	["unaffected by chill"] = { mod("SelfChillEffect", "MORE", -100) },
 	["unaffected by chill while leeching mana"] = { mod("SelfChillEffect", "MORE", -100, { type = "Condition", var = "LeechingMana" }) },
@@ -4213,6 +4236,7 @@ local specialModList = {
 	["culling strike against frozen enemies"] = { mod("CullPercent", "MAX", 10, { type = "ActorCondition", actor = "enemy", var = "Frozen" }) },
 	["culling strike against marked enemy"] = { mod("CullPercent", "MAX", 10, { type = "ActorCondition", actor = "enemy", var = "Marked" }) },
 	["nearby allies have culling strike"] = { mod("ExtraAura", "LIST", {onlyAllies = true, mod = mod("CullPercent", "MAX", 10) }) },
+	["hits that stun enemies have culling strike"] = { flag("Condition:maceMasteryStunCullSpecced") },
 	-- Intimidate
 	["permanently intimidate enemies on block"] = { mod("EnemyModifier", "LIST", { mod = flag("Condition:Intimidated") }, { type = "Condition", var = "BlockedRecently" }) },
 	["with a murderous eye jewel socketed, intimidate enemies for (%d) seconds on hit with attacks"] = { mod("EnemyModifier", "LIST", { mod = flag("Condition:Intimidated") }, { type = "Condition", var = "HaveMurderousEyeJewelIn{SlotName}" }) },
@@ -4666,6 +4690,7 @@ local specialModList = {
 	["gain elusive on critical strike"] = {
 		flag("Condition:CanBeElusive"),
 	},
+	["elusive is removed from you at (%d+)%% effect"] = function(num) return { mod("ElusiveEffectMinThreshold", "OVERRIDE", num) } end,
 	["nearby enemies have (%a+) resistance equal to yours"] = function(_, res) return { flag("Enemy"..(res:gsub("^%l", string.upper)).."ResistEqualToYours") } end,
 	["for each nearby corpse, regenerate ([%d%.]+)%% life per second, up to ([%d%.]+)%%"] = function(num, _, limit) return { mod("LifeRegenPercent", "BASE", num, { type = "Multiplier", var = "NearbyCorpse", limit = tonumber(limit), limitTotal = true }) } end,
 	["gain sacrificial zeal when you use a skill, dealing you %d+%% of the skill's mana cost as physical damage per second"] = {
@@ -4726,6 +4751,9 @@ local specialModList = {
 	["regenerate (%d+) mana per second while any enemy is in your righteous fire or scorching ray"] = function( num) return { mod("ManaRegen", "BASE", num, { type = "Condition", var = "InRFOrScorchingRay" }) } end,
 	["%+(%d+)%% to wave of conviction damage over time multiplier per ([%d%.]+) seconds of duration expired"] = function(num) return { mod("WaveOfConvictionDurationDotMulti", "INC", num) } end,
 	["when an enemy hit deals elemental damage to you, their resistance to those elements becomes zero for (%d+) seconds"] = { flag("Condition:HaveTrickstersSmile"), },
+	-- Conditional Player Quantity / Rarity
+	["(%d+)%% increased quantity of items dropped by slain normal enemies"] = function(num) return { mod("LootQuantityNormalEnemies", "INC", num) } end,
+	["(%d+)%% increased rarity of items dropped by slain magic enemies"] = function(num) return { mod("LootRarityMagicEnemies", "INC", num) } end,
 	-- Pantheon: Soul of Tukohama support
 	["while stationary, gain ([%d%.]+)%% of life regenerated per second every second, up to a maximum of (%d+)%%"] = function(num, _, limit) return {
 		mod("LifeRegenPercent", "BASE", num, { type = "Multiplier", var = "StationarySeconds", limit = tonumber(limit), limitTotal = true }, { type = "Condition", var = "Stationary" }),
