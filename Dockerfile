@@ -28,7 +28,14 @@ RUN --mount=type=cache,from=luarocks,source=/opt,target=/opt make -C /opt/luaroc
 
 #Install here to install pkgs in pararell with compilation of emmylua and luajit
 
-RUN parallel luarocks install ::: busted cluacov luacov luacov-coveralls Lua-cURL lua-zlib luaposix luacheck
+RUN luarocks install busted;\
+	luarocks install cluacov;\
+	luarocks install luacov;\
+	luarocks install luacov-coveralls;\
+	luarocks install Lua-cURL;\
+	luarocks install lua-zlib;\
+	luarocks install luaposix;\
+	luarocks install luacheck
 
 RUN --mount=type=cache,from=luajit,source=/opt,target=/opt make -C /opt/LuaJIT/ install && ln -sf /usr/local/bin/luajit-2.1.0-beta3 /usr/local/bin/luajit
 RUN --mount=type=cache,from=emmyluadebugger,source=/opt,target=/opt make -C /opt/EmmyLuaDebugger/build/ install
