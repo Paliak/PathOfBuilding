@@ -1,3 +1,121 @@
+VERSION[2.46.0][2024/07/25]
+
+--- New to Path of Building ---
+* Add latest and trending builds list to the build list module (canuysal)
+* Add searching for Oils in tree view (nobelv)
+	Prefix your search with "oil:" to search by anoint recipe
+
+--- Fixed Crashes ---
+* Fix crash with some stats in Party tab (Regisle)
+
+--- User Interface ---
+* Fix cancelling tree version conversion didn't revert back to previous value in dropdown (justjuangui)
+
+--- Fixed Calculations ---
+* Fix Rallying Cry Exerted damage mod not working with Autoexertion (LocalIdentity)
+* Fix Maligaro's Virtuosity not working with Perfect Agony (LocalIdentity)
+
+--- Fixed Behaviours ---
+* Fix Banner skills not applying to Minions (LocalIdentity)
+* Fix Flesh and Stone less damage taken scaling with Aura effect (KaoXinRei)
+* Fix quality not applying to Tincture effect (Regisle)
+* Fix Impale not scaling with "damage taken from hits" (mcheese)
+* Fix Cleave of Rage area not scaling with Rage effect (Moremackles)
+* Fix Seismic Cry AoE mod not applying sometimes (LocalIdentity)
+* Fix Rage Vortex AoE per sacrificed Rage mod not working (LocalIdentity)
+* Fix AoE from Fist of War not applying to supported skills (Nostrademous)
+* Match single sets to loadouts more effectively (deathbeam)
+
+--- Accuracy Improvements ---
+* Update unique Staves with block changes (LocalIdentity)
+* Fix Critical Strike Chance of some Rune Daggers (HashBR)
+* Fix Mana cost for Infernal Cry (LocalIdentity)
+* Fix Fungal Ground debuff to apply to all Resistances (LocalIdentity)
+
+VERSION[2.45.0][2024/07/24]
+
+--- New to Path of Building ---
+* Add automatic calculation for Rage sacrificed when using Rage Vortex (LocalIdentity)
+* Add support for changing item quality in the edit item interface (hexeaktivitat)
+* Add config options to override the number of Trap/Mines per throw (NL908)
+* Update Death Aura damage with 3.25 changes (LocalIdentity)
+* Update Tattoo Keystones with 3.25 Changes (LocalIdentity)
+* Update Legion Notables with 3.25 changes (LocalIdentity)
+* Update Fungal and Profane Ground with 3.25 changes (LocalIdentity)
+
+--- Fixed Crashes ---
+* Fix crash when hovering over Tinctures in Item tab (justjuangui)
+* Fix crash when socketing Thread of Hope in Cluster socket (trimbe)
+* Fix crash when importing a build with Warcries (Regisle)
+
+--- User Interface ---
+* Add support to search Character import list by Ascendancy (justjuangui, ryuukk)
+* Relax matching for loadout names and allow groups at any spot (deathbeam)
+* Show proper skill group when switching loadouts (deathbeam)
+
+--- Fixed Calculations ---
+* Fix Seismic Cry AoE calculation (LocalIdentity)
+* Fix Impale not using enemy damage taken (mcheese)
+* Fix Tincture Mana Burn rate applying inversely (Regisle)
+
+--- Fixed Behaviours ---
+* Fix Rage Effect not applying to "per x Rage" mods (LocalIdentity)
+* Fix Autoexertion and Call to Arms not disabling Warcry buffs (LocalIdentity)
+* Fix Arcane Surge not working with Wilma's Requital (mcheese)
+* Fix Cruel Retort granting Attack/Cast Speed to all skills (LocalIdentity)
+
+--- Accuracy Improvements ---
+* Fix Herald of Ash Phys as extra Fire scaling (LocalIdentity)
+* Fix Cyclone of Tumult and Dual Strike of Impaling gem values (LocalIdentity)
+
+--- Fixed Bugs ---
+* Fix config set copies not having independent values (justjuangui)
+
+VERSION[2.44.1][2024/07/23]
+
+--- New to Path of Building ---
+* Update 3.25 Skill trees (LocalIdentity)
+* Remove more fire damage line from Herald of Ash description (LocalIdentity)
+
+--- Fixed Crashes ---
+* Fix Crash when allocating Perfect Agony while unarmed (LocalIdentity)
+
+VERSION[2.44.0][2024/07/23]
+
+--- New to Path of Building ---
+* Update Axe, Claw, Dagger, Sceptre,  Staff and Flask Bases with 3.25 Changes (LocalIdentity, pauloday)
+
+--- Fixed Crashes ---
+* Fix crash when trying to add gems to Penance Brand of Dissipation (Paliak)
+
+--- User Interface ---
+* Fix tree selection hotkey double selecting (Wires77)
+* Add toggle for node search viewport edge highlight (Paliak)
+
+--- Fixed Calculations ---
+* Fix "damage with Bleeding" mod not working (LocalIdentity)
+* Fix War Banner not granting damage to Bleed (LocalIdentity)
+* Fix Valour incorrectly granting increased Aura effect instead of more Aura Effect (LocalIdentity)
+* Fix Perfect Agony not including on enemy effects (Paliak)
+* Fix Svalinn Lucky block mod not applying to Spell Block (LocalIdentity)
+* Fix Seismic Cry more AoE mod scaling with Buff Effect (LocalIdentity)
+* Fix Seething Fury not working with Perfect Agony (Paliak)
+
+--- Fixed Behaviours ---
+* Fix Power Siphon not benefiting from Spell Damage (LocalIdentity)
+* Fix pathing from Ascendant path node to class start (trimbe)
+* Fix Divine Blessing flat cost not appearing in breakdown (LocalIdentity)
+* Fix Blood Rage not granting Attack damage leech (LocalIdentity)
+* Fix Enduring Cry having incorrect duration (LocalIdentity)
+
+--- Accuracy Improvements ---
+* Fix Fist of War description not applying damage to Ailments (LocalIdentity)
+* Fix Blade Flurry using the wrong damage effectiveness values (LocalIdentity)
+* Fix Seismic Cry including old AoE increase mod (LocalIdentity)
+* Fix Caustic Arrow of Poison still having Flat Damage (LocalIdentity)
+* Fix elemental catalyst not applying to new The Taming (Nerotox)
+* Fix Lethal Pride granting Phys as Extra Fire instead of Rage on hit (LocalIdentity)
+
 VERSION[2.43.0][2024/07/23]
 
 --- New to Path of Building ---

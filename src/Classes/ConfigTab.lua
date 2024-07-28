@@ -655,6 +655,11 @@ function ConfigTabClass:Load(xml, fileName)
 			end
 		end
 	end
+
+	-- Catch special case of empty Config
+	if xml.empty then
+		self:NewConfigSet(1, "Default")
+	end
 	for index, node in ipairs(xml) do
 		if node.elem ~= "ConfigSet" then
 			if not self.configSets[1] then
@@ -673,7 +678,6 @@ function ConfigTabClass:Load(xml, fileName)
 
 	self:SetActiveConfigSet(tonumber(xml.attrib.activeConfigSet) or 1)
 	self:ResetUndo()
-	self.build:SyncLoadouts()
 end
 
 function ConfigTabClass:GetDefaultState(var, varType)
@@ -986,4 +990,5 @@ function ConfigTabClass:SetActiveConfigSet(configSetId, init)
 		self:BuildModList()
 	end
 	self.build.buildFlag = true
+	self.build:SyncLoadouts()
 end

@@ -1,5 +1,128 @@
 # Changelog
 
+## [v2.46.0](https://github.com/PathOfBuildingCommunity/PathOfBuilding/tree/v2.46.0) (2024/07/25)
+
+[Full Changelog](https://github.com/PathOfBuildingCommunity/PathOfBuilding/compare/v2.45.0...v2.46.0)
+
+<!-- Release notes generated using configuration in .github/release.yml at dev -->
+
+## What's Changed
+### New to Path of Building
+- Add latest and trending builds list to the build list module [\#7389](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7389) ([canuysal](https://github.com/canuysal))
+- Add searching for Oils in tree view [\#7902](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7902) ([nobelv](https://github.com/nobelv))
+### Fixed Crashes
+- Fix crash with some stats in Party tab [\#7920](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7920) ([Regisle](https://github.com/Regisle))
+### User Interface
+- Fix cancelling tree version conversion didn't revert back to previous value in dropdown [\#7904](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7904) ([justjuangui](https://github.com/justjuangui))
+### Fixed Calculations
+- Fix Rallying Cry Exerted damage mod not working with Autoexertion [\#7914](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7914) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Maligaro's Virtuosity not working with Perfect Agony [\#7918](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7918) ([LocalIdentity](https://github.com/LocalIdentity))
+### Fixed Behaviours
+- Fix Banner skills not applying to Minions [\#7922](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7922) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Flesh and Stone less damage taken scaling with Aura effect [\#7892](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7892) ([KaoXinRei](https://github.com/KaoXinRei))
+- Fix quality not applying to Tincture effect [\#7894](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7894) ([Regisle](https://github.com/Regisle))
+- Fix Impale not scaling with "damage taken from hits" [\#7898](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7898) ([mcheese](https://github.com/mcheese))
+- Fix Cleave of Rage area not scaling with Rage effect [\#7890](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7890) ([Moremackles](https://github.com/Moremackles))
+- Fix Seismic Cry AoE mod not applying sometimes [\#7915](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7915) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Rage Vortex AoE per sacrificed Rage mod not working [\#7916](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7916) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix AoE from Fist of War not applying to supported skills [\#7924](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7924) ([Nostrademous](https://github.com/Nostrademous))
+- Match single sets to loadouts more effectively [\#7846](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7846) ([deathbeam](https://github.com/deathbeam))
+### Accuracy Improvements
+- Update unique Staves with block changes [\#7926](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7926) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Critical Strike Chance of some Rune Daggers [\#7909](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7909) ([HashBR](https://github.com/HashBR))
+- Fix Mana cost for Infernal Cry [\#7919](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7919) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Fungal Ground debuff to apply to all Resistances [\#7925](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7925) ([LocalIdentity](https://github.com/LocalIdentity))
+
+
+## [v2.45.0](https://github.com/PathOfBuildingCommunity/PathOfBuilding/tree/v2.45.0) (2024/07/24)
+
+[Full Changelog](https://github.com/PathOfBuildingCommunity/PathOfBuilding/compare/v2.44.1...v2.45.0)
+
+<!-- Release notes generated using configuration in .github/release.yml at dev -->
+
+## What's Changed
+### New to Path of Building
+- Add automatic calculation for Rage sacrificed when using Rage Vortex [\#7880](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7880) ([LocalIdentity](https://github.com/LocalIdentity))
+- Add support for changing item quality in the edit item interface [\#5914](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/5914) ([hexeaktivitat](https://github.com/hexeaktivitat))
+- Add config options to override the number of Trap/Mines per throw [\#7879](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7879) ([NL908](https://github.com/NL908))
+- Update Death Aura damage with 3.25 changes [\#7842](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7842) ([LocalIdentity](https://github.com/LocalIdentity))
+- Update Tattoo Keystones with 3.25 Changes [\#7865](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7865) ([LocalIdentity](https://github.com/LocalIdentity))
+- Update Legion Notables with 3.25 changes [\#7864](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7864) ([LocalIdentity](https://github.com/LocalIdentity))
+- Update Fungal and Profane Ground with 3.25 changes [\#7884](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7884) ([LocalIdentity](https://github.com/LocalIdentity))
+### Fixed Crashes
+- Fix crash when hovering over Tinctures in Item tab [\#7862](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7862) ([justjuangui](https://github.com/justjuangui))
+- Fix crash when socketing Thread of Hope in Cluster socket [\#7882](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7882) ([trimbe](https://github.com/trimbe))
+- Fix crash when importing a build with Warcries [\#7853](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7853) ([Regisle](https://github.com/Regisle))
+### User Interface
+- Add support to search Character import list by Ascendancy [\#7824](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7824) ([justjuangui](https://github.com/justjuangui), [ryuukk](https://github.com/ryuukk))
+- Relax matching for loadout names and allow groups at any spot [\#7847](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7847) ([deathbeam](https://github.com/deathbeam))
+- Show proper skill group when switching loadouts [\#7874](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7874) ([deathbeam](https://github.com/deathbeam))
+### Fixed Calculations
+- Fix Seismic Cry AoE calculation [\#7837](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7837) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Impale not using enemy damage taken [\#7831](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7831) ([mcheese](https://github.com/mcheese))
+- Fix Tincture Mana Burn rate applying inversely [\#7851](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7851) ([Regisle](https://github.com/Regisle))
+### Fixed Behaviours
+- Fix Rage Effect not applying to "per x Rage" mods [\#7866](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7866) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Autoexertion and Call to Arms not disabling Warcry buffs [\#7861](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7861) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Arcane Surge not working with Wilma's Requital [\#7872](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7872) ([mcheese](https://github.com/mcheese))
+- Fix Cruel Retort granting Attack/Cast Speed to all skills [\#7881](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7881) ([LocalIdentity](https://github.com/LocalIdentity))
+### Accuracy Improvements
+- Fix Herald of Ash Phys as extra Fire scaling [\#7839](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7839) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Cyclone of Tumult and Dual Strike of Impaling gem values [\#7883](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7883) ([LocalIdentity](https://github.com/LocalIdentity))
+### Fixed Bugs
+- Fix config set copies not having independent values [\#7867](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7867) ([justjuangui](https://github.com/justjuangui))
+
+
+## [v2.44.1](https://github.com/PathOfBuildingCommunity/PathOfBuilding/tree/v2.44.1) (2024/07/23)
+
+[Full Changelog](https://github.com/PathOfBuildingCommunity/PathOfBuilding/compare/v2.44.0...v2.44.1)
+
+## What's Changed
+### New to Path of Building
+- Update Skill Tree ([LocalIdentity](https://github.com/LocalIdentity))
+- Remove more fire damage line from Herald of Ash description ([LocalIdentity](https://github.com/LocalIdentity))
+### Fixed Crashes
+- Fix Crash when allocating Perfect Agony while unarmed ([LocalIdentity](https://github.com/LocalIdentity))
+
+## [v2.44.0](https://github.com/PathOfBuildingCommunity/PathOfBuilding/tree/v2.44.0) (2024/07/23)
+
+[Full Changelog](https://github.com/PathOfBuildingCommunity/PathOfBuilding/compare/v2.43.0...v2.44.0)
+
+<!-- Release notes generated using configuration in .github/release.yml at dev -->
+
+## What's Changed
+### New to Path of Building
+- Update Axe, Claw, Dagger, Sceptre,  Staff and Flask Bases with 3.25 Changes [\#7828](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7828), [\#7815](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7815) ([LocalIdentity](https://github.com/LocalIdentity), [pauloday](https://github.com/pauloday))
+### Fixed Crashes
+- Fix crash when trying to add gems to Penance Brand of Dissipation [\#7825](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7825) ([Paliak](https://github.com/Paliak))
+### User Interface
+- Fix tree selection hotkey double selecting [\#7789](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7789) ([Wires77](https://github.com/Wires77))
+- Add toggle for node search viewport edge highlight [\#7822](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7822) ([Paliak](https://github.com/Paliak))
+### Fixed Calculations
+- Fix "damage with Bleeding" mod not working [\#7800](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7800) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix War Banner not granting damage to Bleed [\#7799](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7799) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Valour incorrectly granting increased Aura effect instead of more Aura Effect [\#7810](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7810) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Perfect Agony not including on enemy effects [\#7807](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7807) ([Paliak](https://github.com/Paliak))
+- Fix Svalinn Lucky block mod not applying to Spell Block [\#7817](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7817) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Seismic Cry more AoE mod scaling with Buff Effect [\#7813](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7813) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Seething Fury not working with Perfect Agony [\#7812](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7812) ([Paliak](https://github.com/Paliak))
+### Fixed Behaviours
+- Fix Power Siphon not benefiting from Spell Damage [\#7802](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7802) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix pathing from Ascendant path node to class start [\#7806](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7806) ([trimbe](https://github.com/trimbe))
+- Fix Divine Blessing flat cost not appearing in breakdown [\#7811](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7811) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Blood Rage not granting Attack damage leech [\#7823](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7823) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Enduring Cry having incorrect duration [\#7814](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7814) ([LocalIdentity](https://github.com/LocalIdentity))
+### Accuracy Improvements
+- Fix Fist of War description not applying damage to Ailments [\#7798](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7798) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Blade Flurry using the wrong damage effectiveness values [\#7797](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7797) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Seismic Cry including old AoE increase mod [\#7791](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7791) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix Caustic Arrow of Poison still having Flat Damage [\#7803](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7803) ([LocalIdentity](https://github.com/LocalIdentity))
+- Fix elemental catalyst not applying to new The Taming [\#7821](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7821) ([Nerotox](https://github.com/Nerotox))
+- Fix Lethal Pride granting Phys as Extra Fire instead of Rage on hit [\#7819](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7819) ([LocalIdentity](https://github.com/LocalIdentity))
+### Other changes
+- Use Default value for loadout with no set name match [\#7793](https://github.com/PathOfBuildingCommunity/PathOfBuilding/pull/7793) ([deathbeam](https://github.com/deathbeam))
+
+
 ## [v2.43.0](https://github.com/PathOfBuildingCommunity/PathOfBuilding/tree/v2.43.0) (2024/07/23)
 
 [Full Changelog](https://github.com/PathOfBuildingCommunity/PathOfBuilding/compare/v2.42.0...v2.43.0)
