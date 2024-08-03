@@ -1,3 +1,70 @@
+VERSION[2.47.3][2024/07/30]
+
+--- Fixed Crashes ---
+* Fix crash when importing builds to Party tab (Regisle)
+* Fix crash when using Svalinn unique shield (Paliak)
+
+--- Fixed Calculations ---
+* Fix Inspiration granting more Mana cost instead of Less (LocalIdentity)
+* Fix Warcry trigger rate calculations (Paliak)
+* Fix Overexertion and Echoes of Creation counting non-exerting Warcries (LocalIdentity)
+* Fixes Rupture using the wrong stat for damage taken and Bleed duration (dreais)
+
+--- Fixed Behaviours ---
+* Fix Autoexertion not triggering supported skills (Paliak)
+* Fix Autoexertion not applying Mana reservation to Warcries (LocalIdentity)
+* Fix Poison stacks not being capped by skills and config option (LocalIdentity)
+* Fix item quality not defaulting to 20% (ConnorThelin)
+
+VERSION[2.47.2][2024/07/29]
+
+--- Fixed Calculations ---
+* Fix Block Chance calculation (LocalIdentity)
+
+VERSION[2.47.1][2024/07/29]
+
+--- Fixed Calculations ---
+* Fix Added Damage not applying to Monster Explosions (LocalIdentity)
+* Fix Poison stacks applying twice to Poison DPS (LocalIdentity)
+* Fix damage calculation when using both Autoexertion and Echoes of Creation (LocalIdentity)
+
+--- Fixed Behaviours ---
+* Fix increased Chance to Block mod on Shields not working (LocalIdentity)
+
+VERSION[2.47.0][2024/07/29]
+
+--- New to Path of Building ---
+* Update Gems, Item bases, Mods and Minions (Wires77, Regisle, Nostrademous, LocalIdentity)
+* Add support for new 3.25 Gems (LocalIdentity)
+* Add support for new 3.25 Uniques (LocalIdentity, Paliak, Nostrademous)
+* Add support for Warcries to affect Minions (Regisle)
+* Add support for Echoes of Creation (LocalIdentity)
+* Fix numerous issues in bleed calculations (CelestiaTheDryad)
+
+--- Fixed Crashes ---
+* Fix crash when importing a build where empty configs were not loaded properly (Wires77)
+
+--- User Interface ---
+* Remove remote build list functionality pending redesign (Wires77)
+* Fix breakdown for DoT Multiplier (Rybadour)
+
+--- Fixed Calculations ---
+* Fix DoT Multi when using Maligaro's Virtuosity and Perfect Agony (DieMango)
+* Fix Scorch chance on Crit when using Warden's Oath of Summer (ConnorThelin)
+* Fix Gladiator Determined Survivor Shield Block calculation (Regisle)
+* Fix Ignite divide by 0 error (NL908)
+
+--- Fixed Behaviours ---
+* Fix Quality on Tinctures to apply More effect instead of Increased (nexus671)
+* Fix non-instant Life Leech incorrectly applying with Strength of Blood (greatnameincoming)
+* Fix Ravenous Passion helmet not granting Spell damage from Rage (LocalIdentity)
+* Fix Rallying Cry Exerted damage mod incorrectly working with Autoexertion (LocalIdentity)
+* Improve Militant Faith Notable Protection (Peechey)
+
+--- Accuracy Improvements ---
+* Fix Dark Seer missing global Chance to Blind on Hit (NL908)
+* Add tag to Legacy Watchers eye mods (LocalIdentity)
+
 VERSION[2.46.0][2024/07/25]
 
 --- New to Path of Building ---
