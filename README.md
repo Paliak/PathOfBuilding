@@ -1,4 +1,4 @@
-# Path of Building 2 Community
+# Path of Building Community
 ## Welcome to Path of Building, an offline build planner for Path of Exile!
 
 <p float="middle">
