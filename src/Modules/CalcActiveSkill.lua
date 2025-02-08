@@ -594,11 +594,12 @@ function calcs.buildActiveSkillModList(env, activeSkill)
 	end
 
 	-- Extract skill data
-	for _, value in ipairs(env.modDB:List(activeSkill.skillCfg, "SkillData")) do
-		activeSkill.skillData[value.key] = value.value
-	end
 	for _, value in ipairs(skillModList:List(activeSkill.skillCfg, "SkillData")) do
-		activeSkill.skillData[value.key] = value.value
+		if value.merge == "MAX" then
+			activeSkill.skillData[value.key] = m_max(value.value, activeSkill.skillData[value.key] or 0)
+		else
+			activeSkill.skillData[value.key] = value.value
+		end
 	end
 
 	-- Create minion

@@ -475,15 +475,6 @@ function calcs.offence(env, actor, activeSkill)
 		skillFlags.focused = true
 	end
 
-	-- Update skill data
-	for _, value in ipairs(skillModList:List(skillCfg, "SkillData")) do
-		if value.merge == "MAX" then
-			skillData[value.key] = m_max(value.value, skillData[value.key] or 0)
-		else
-			skillData[value.key] = value.value
-		end
-	end
-
 	-- Add addition stat bonuses
 	if skillModList:Flag(nil, "IronGrip") then
 		skillModList:NewMod("PhysicalDamage", "INC", actor.strDmgBonus or 0, "Strength", bor(ModFlag.Attack, ModFlag.Projectile))
