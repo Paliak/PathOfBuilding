@@ -1022,6 +1022,11 @@ local skills, mod, flag, skill = ...
 	fromItem = true,
 #mods
 
+#skill TriggeredStarfall
+#flags attack projectile area
+	fromItem = true,
+#mods
+
 #skill Twister
 #flags spell projectile duration
 	fromItem = true,

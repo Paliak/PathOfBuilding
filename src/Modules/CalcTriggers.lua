@@ -886,6 +886,11 @@ local function defaultTriggerHandler(env, config)
 end
 
 local configTable = {
+	["starfall"] = function()
+		return {
+			triggerSkillCond = function(env, skill) return (skill.skillTypes[SkillType.Melee] or skill.skillTypes[SkillType.Attack]) end
+		}
+	end,
 	["law of the wilds"] = function()
 		return {
 			triggerSkillCond = function(env, skill)
