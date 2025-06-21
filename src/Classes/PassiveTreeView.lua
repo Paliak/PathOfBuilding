@@ -297,10 +297,9 @@ function PassiveTreeViewClass:Draw(build, viewPort, inputEvents)
 				build.itemsTab:SelectControl(slot)
 				build.viewMode = "ITEMS"
 			end
-		elseif hoverNode and (hoverNode.isTattoo
+		elseif hoverNode and (hoverNode.isTattoo or hoverNode.type == "Keystone" or (not hoverNode.alloc and hoverNode.type == "Mastery")
 			or (hoverNode.type == "Normal" and (hoverNode.dn == "Strength" or hoverNode.dn == "Dexterity" or hoverNode.dn == "Intelligence"))
-			or (hoverNode.type == "Notable" and #hoverNode.sd > 0 and (hoverNode.sd[1]:match("+30 to Dexterity") or hoverNode.sd[1]:match("+30 to Strength") or hoverNode.sd[1]:match("+30 to Intelligence")))
-			or hoverNode.type == "Keystone")
+			or (hoverNode.type == "Notable" and #hoverNode.sd > 0 and (hoverNode.sd[1]:match("+30 to Dexterity") or hoverNode.sd[1]:match("+30 to Strength") or hoverNode.sd[1]:match("+30 to Intelligence"))))
 		then
 			build.treeTab:ModifyNodePopup(hoverNode, viewPort)
 			build.buildFlag = true
@@ -540,6 +539,10 @@ function PassiveTreeViewClass:Draw(build, viewPort, inputEvents)
 					end
 				else
 					base = node.sprites.mastery
+				end
+				if node.isTattoo and node.effectSprites then -- trees < 3.22.0 don't have effectSprites
+					base = node.sprites.mastery
+					effect = node.effectSprites["tattooActiveEffect"]
 				end
 				SetDrawLayer(nil, 15)
 			else
