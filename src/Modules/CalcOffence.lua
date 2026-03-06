@@ -527,6 +527,11 @@ function calcs.offence(env, actor, activeSkill)
 	-- set flask scaling
 	output.LifeFlaskRecovery = env.itemModDB.multipliers["LifeFlaskRecovery"]
 
+	-- Process ability to inflict Hallowing Flame by current skill
+	if skillModList:Flag(skillCfg , "CanInflictHallowingFlame") then
+		skillModList:NewMod("SkillCanInflictHallowingFlame", "FLAG", true, "Skill", { type = "Condition", var = "Effective" })
+	end
+
 	if modDB.conditions["AffectedByEnergyBlade"] then
 		local dmgMod = calcLib.mod(skillModList, skillCfg, "EnergyBladeDamage")
 		local speedMod = calcLib.mod(skillModList, skillCfg, "EnergyBladeAttackSpeed")

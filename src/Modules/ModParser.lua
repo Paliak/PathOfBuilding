@@ -143,6 +143,7 @@ local formList = {
 	["^are "] = "FLAG",
 	["^gain "] = "FLAG",
 	["^you gain "] = "FLAG",
+	["^inflict "] = "FLAG",
 	["is (%-?%d+)%%? "] = "OVERRIDE",
 	["is doubled"] = "DOUBLED",
 	["doubles?"] = "DOUBLED",
@@ -1652,6 +1653,7 @@ local modTagList = {
 	["while you have a tincture active"] = { tag = { type = "Condition", var = "UsingTincture" } },
 	["with at least one (%w+) grafted to you"] = function(_, graft) return { tag = { type = "Condition", var = "Using"..firstToUpper(graft) } } end,
 	["while on consecrated ground"] = { tag = { type = "Condition", var = "OnConsecratedGround" } },
+	["on hit while on consecrated ground"] = { flags = ModFlag.Hit, tag = { type = "Condition", var = "OnConsecratedGround" } },
 	["while on caustic ground"] = { tag = { type = "Condition", var = "OnCausticGround" } },
 	["when you create consecrated ground"] = { },
 	["on burning ground"] = { tag = { type = "Condition", var = "OnBurningGround" } },
@@ -2718,7 +2720,8 @@ local specialModList = {
 		mod("ExtraLinkEffect", "LIST", { mod = mod("ElementalResistMax", "BASE", num, { type = "GlobalEffect", effectType = "Global", unscalable = true }) }),
 	} end,
 	["enemies in your link beams cannot apply elemental ailments"] = { flag("ElementalAilmentImmune", { type = "ActorCondition", actor = "enemy", var = "BetweenYouAndLinkedTarget" }), },
-	["(%d+)%% of damage from hits is taken from your sentinel of radiance's life before you"] = function(num) return { mod("takenFromRadianceSentinelBeforeYou", "BASE", num) } end,
+	["(%d+)%% of damage from hits is taken from your sentinel of radiance's   life before you"] = function(num) return { mod("takenFromRadianceSentinelBeforeYou", "BASE", num) } end,
+	["you can inflict %+(%d+) hallowing flame on enemies"] = function(num) return { mod("HallowingFlameMax", "BASE", num) } end,
 	-- Hierophant
 	["you and your totems regenerate ([%d%.]+)%% of life per second for each summoned totem"] = function (num) return {
 		mod("LifeRegenPercent", "BASE", num, { type = "PerStat", stat = "TotemsSummoned" }),
@@ -3313,6 +3316,7 @@ local specialModList = {
 	} end,
 	["exsanguinate debuffs deal fire damage per second instead of physical damage per second"] = { flag("Condition:ExsanguinateDebuffIsFireDamage", { type = "SkillName", skillName = "Exsanguinate", includeTransfigured = true })},
 	["reap debuffs deal fire damage per second instead of physical damage per second"] = { flag("Condition:ReapDebuffIsFireDamage", { type = "SkillName", skillName = "Reap" })},
+	["gain (%d+)%% of (%a+) damage as extra (%a+) damage for each of your hallowing flames that have removed by an allied hit recently, up to (%d+)%%"] = function(num, _, fromType, destType, limit) return { mod((fromType:gsub("^%l", string.upper)) .. "DamageGainAs" .. (destType:gsub("^%l", string.upper)), "BASE", num, { type = "Multiplier", var = "HallowingFlameStacksRemovedByAlly", limit = tonumber(limit) / num }) } end,
 	-- Crit
 	["your critical strike chance is lucky"] = { flag("CritChanceLucky") },
 	["your critical strike chance is lucky while on low life"] = { flag("CritChanceLucky", { type = "Condition", var = "LowLife" }) },
@@ -5709,7 +5713,8 @@ local flagTypes = {
 	["lesser massive shrine buff"] = "Condition:LesserMassiveShrine",
 	["diamond shrine buff"] = "Condition:DiamondShrine",
 	["massive shrine buff"] = "Condition:MassiveShrine",
-	["resistance shrine buff"] = "Condition:ResistanceShrine"
+	["resistance shrine buff"] = "Condition:ResistanceShrine",
+	["hallowing flame"] = "CanInflictHallowingFlame"
 }
 
 -- Build active skill name lookup
@@ -6349,7 +6354,6 @@ local function parseMod(line, order)
 	if order == 1 and not skillTag then
 		skillTag, line = scan(line, skillNameList)
 	end
-
 	-- Scan for flags
 	local modFlag
 	modFlag, line = scan(line, modFlagList, true)
