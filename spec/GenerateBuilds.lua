@@ -1,3 +1,13 @@
+-- Optional decoded feed directory; the existing link and fixture paths remain the default.
+local inputDir = os.getenv("BUILDINPUTDIR")
+if inputDir then
+    assert(not os.getenv("BUILDLINKS"), "Choose BUILDINPUTDIR or BUILDLINKS")
+    local originalLoadDB = build.LoadDB
+    function build:LoadDB(...)
+        assert(not originalLoadDB(self, ...), "Feed build import failed")
+    end
+end
+
 local function fetchBuilds(path)
     local lastDLtime = GetTime()
     local co = coroutine.create(function(path)
@@ -67,13 +77,17 @@ local function fetchBuilds(path)
     end
 end
 
-for testBuild in fetchBuilds("../spec/TestBuilds") do
+for testBuild in fetchBuilds(inputDir or "../spec/TestBuilds") do
     local filePath = (os.getenv("BUILDCACHEPREFIX") or "/tmp") .. "/" .. testBuild.filename
     local startTime = GetTime()
 
     -- Compute the build
     print("[+] Computing " .. filePath)
-    loadBuildFromXML(testBuild.xml)
+    loadBuildFromXML(testBuild.xml, inputDir and testBuild.filename or nil)
+    if inputDir then
+        assert(build.buildName == testBuild.filename and build.targetVersion, "Feed build initialization incomplete")
+        assert(build.calcsTab and build.calcsTab.mainOutput, "Feed build has no calculated output")
+    end
     local calcDuration = GetTime() - startTime
     print("[-] Computed " .. filePath .. " in " .. calcDuration .. "ms")
 

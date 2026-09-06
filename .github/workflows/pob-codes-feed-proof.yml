@@ -1,0 +1,32 @@
+name: PoB Codes feed integration proof
+on:
+  pull_request:
+    branches: [tests-branch, dev]
+    paths:
+      - spec/FetchTestBuilds.py
+      - spec/GenerateBuilds.lua
+      - spec/DiffOutput.lua
+      - spec/TestBuilds/**
+      - tests/test_pob_codes_feed.py
+      - .github/workflows/pob-codes-feed-proof.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  existing_generator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prove adapter, existing generator, and existing comparator
+        env:
+          POB_FEED_DOCKER_TEST: '1'
+        run: python -m unittest discover -s tests -p test_pob_codes_feed.py -v
+      - name: Validate and decode the live monthly batch (manual only)
+        if: github.event_name == 'workflow_dispatch'
+        run: python spec/FetchTestBuilds.py --output "$RUNNER_TEMP/pob-codes-inputs"
