@@ -24,6 +24,7 @@ for filename in list:lines() do
     local input = assert(io.open("/inputs/" .. filename, "rb"))
     local xml = input:read("*a")
     input:close()
+    print("Calculating input " .. filename)
     posix.alarm(30)
     loadBuildFromXML(xml, filename)
     assert(build.buildName == filename and build.targetVersion, "Build initialization incomplete")
