@@ -1,37 +1,47 @@
----
-name: Update build list for tests
+name: Refresh monthly build corpus
 on:
   schedule:
     - cron: '20 4 * * *'
   workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: monthly-build-corpus-writer
+  cancel-in-progress: false
 jobs:
-  update-builds-list:
-    runs-on: ubuntu-22.04
+  refresh:
+    if: vars.TEST_BUILD_CORPUS_ENABLED == 'true' && github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Checkout HEAD
-        uses: actions/checkout@v4
-      - name: Install moreutils
-        run: sudo apt-get install -y moreutils
-      - name: Download latest build list
-        uses: dawidd6/action-download-artifact@3ecf4024886f219d9290351234889bfb45d1b9da
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
-          name: builds.txt
-          if_no_artifact_found: warn
-          path: /tmp/latestbuildlist/
-      - name: Update list
-        run: >
-            cat spec/builds.txt /tmp/latestbuildlist/builds.txt
-            <({ curl "https://pobarchives.com/api/builds?q=latest" & curl "https://pobarchives.com/api/builds?q=trending"; }
-            | jq -r '.builds[].build_info.build_link')
-            | tail -n 500
-            | sort -u
-            | sponge builds.txt
-      - name: Print new builds list
-        run: cat builds.txt
-      - name: Save new build list
-        uses: actions/upload-artifact@v4
-        with:
-          name: builds.txt
-          path: builds.txt
-          overwrite: true
-          retention-days: 3
+          python-version: '3.12'
+      - name: Load saved corpus or bootstrap an empty branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          REMOTE_REF=$(git ls-remote origin refs/heads/build-test-corpus)
+          if [ -n "$REMOTE_REF" ]; then
+            git fetch origin refs/heads/build-test-corpus
+            git worktree add --detach "$RUNNER_TEMP/corpus" FETCH_HEAD
+          else
+            git worktree add --detach "$RUNNER_TEMP/corpus" HEAD
+            git -C "$RUNNER_TEMP/corpus" switch --orphan build-test-corpus
+          fi
+      - name: Validate and construct next corpus
+        run: python spec/UpdateBuildCorpus.py --url https://api.pob.codes/test-builds --prior "$RUNNER_TEMP/corpus" --output "$RUNNER_TEMP/next-corpus"
+      - name: Commit manifest and retained bytes together
+        run: |
+          git -C "$RUNNER_TEMP/corpus" rm -r --ignore-unmatch codes manifest.json
+          cp -a "$RUNNER_TEMP/next-corpus/." "$RUNNER_TEMP/corpus/"
+          git -C "$RUNNER_TEMP/corpus" add manifest.json codes
+          if git -C "$RUNNER_TEMP/corpus" diff --cached --quiet; then
+            echo "Monthly batch already applied; no corpus change."
+            exit 0
+          fi
+          git -C "$RUNNER_TEMP/corpus" commit -m "Refresh monthly test-build corpus"
+          # Plain fast-forward push rejects a competing writer. The next daily run
+          # refetches/reapplies; never force-push or publish a partial manifest.
+          git -C "$RUNNER_TEMP/corpus" push origin HEAD:refs/heads/build-test-corpus

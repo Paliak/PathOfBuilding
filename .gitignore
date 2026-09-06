@@ -36,3 +36,5 @@ src/Data/TimelessJewelData/*.bin
 
 # Simplegraphic Debugging
 runtime/imgui.ini
+__pycache__/
+*.pyc

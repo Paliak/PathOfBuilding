@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "batchId": "fixture-v1-september",
+  "period": "2026-09",
+  "generatedAt": "2026-09-01T00:00:00.000Z",
+  "patchVersion": "3.29",
+  "requestedCount": 100,
+  "count": 2,
+  "builds": [
+    {
+      "code": "eJxdUM1Kw0AQvvsUw7xAop6U3QWtYAPaShe8yphM6-Jko7uTQt5esrEKPc03fH_MmBfSj-3-fgzShXhwpiBQSgfWV045DNHi9VuNIHxksXhTI7RCOW-oZ4sPI0vIikC55dit_hkvNHHCyplGuc9ArYYjz9izWrzEhYDQlWVHKeh0C5vt7vnu6aJJQ4Q1qalm0SL1rCe18TIoxFK0ZulZEYJy3xS6covNs_6i7Iz_DCKnCRzpXbizqGlkdOaR-xLnv7i1uJpaGSL_HX1VI3yPJEEnizWeuee6knqa2Znq7LE_hS94Rw",
+      "sha256": "ef7902502b0384dfda63c508a1f947a760041281866e21dc39e9ad995cd8a410"
+    },
+    {
+      "code": "eJxdUMFOwzAMvfMVln-gBU6gJBLswCpBhxoJJC4oS81mkaSQuJP296gtA2mn92w_vydbPTvZbz7uRw49p51RMwNxeUfyQrnwkDRev9cIgQ4UNN7UCD64UloXSeMri98juOIp9av_fks-D9ElTxkroxqhWMB54QNN3JJovMRlANzPRecyy_EW2k33dPd40eQhwdqJqibRIrUkJ7WyYRBIc9qaQiRBYKHYzOPKLGuW5JcVo-wnh3BCoOS2gXqNkkdCox4oznb2i7zGznEheBvilunv-Ksa4Xt0geWoscYziylztj5hMao6e_APen17Fg",
+      "sha256": "4f945f69ee23b74eb9bfff9fcc89001d61a9bf464a4c49c33c7947ec63bd5353"
+    }
+  ]
+}

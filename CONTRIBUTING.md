@@ -1,5 +1,105 @@
 # Contributing to Path of Building
 
+## Monthly build-corpus CI
+
+This branch separates monthly input collection from offline PoB comparisons.
+PoB Codes serves up to 100 codes at `https://api.pob.codes/test-builds`. This
+repository owns a FIFO of at most 500 unique encoded inputs on the dedicated
+`build-test-corpus` branch. Fixed XML fixtures in `spec/TestBuilds` run alongside
+the rotating corpus. There is no migration of `spec/builds.txt`, external
+provider scraping, calculated-output cache, or new report format.
+
+### Run locally
+
+Install Python 3.12+ and Docker. Resolve base/head Git commits locally, then:
+
+```sh
+python -m unittest discover -s tests -v
+python spec/RunBuildDiff.py --base <base-sha> --head <head-sha> --fixtures-only --output /tmp/pob-fixture-result
+git fetch origin refs/heads/build-test-corpus
+git worktree add --detach /tmp/pob-corpus FETCH_HEAD
+python spec/RunBuildDiff.py --base <base-sha> --head <head-sha> --corpus /tmp/pob-corpus --output /tmp/pob-corpus-result
+```
+
+Each output directory must be new. `--strict` makes numerical differences fail;
+without it, differences remain ordinary advisory `DiffOutput.lua` output.
+Crashes, timeouts, invalid manifests, absent inputs, and missing calculated
+stats always fail. `--extra-fixtures <directory>` adds local XML fixtures.
+`--image <already-built-image>` supports offline reproduction; the runner pins
+the inspected image ID for both sides. Otherwise it builds
+`Dockerfile.test-builds`, with a digest-pinned base and version-pinned UTF-8 rock.
+The old `busted-diff` Compose service is replaced by this host-side runner.
+
+The runner archives each revision's `src` and `runtime`, supplies the same
+headless compatibility helper and identical inputs, and uses two concurrent
+containers at most. Each container has two CPUs, 2 GiB memory, no network, and
+read-only runtime/input mounts. Batches contain at most 25 builds, with a
+30-second per-input alarm and 300-second container deadline. Saved files must
+match the complete expected input set and contain player stats; active minion
+builds must also save minion stats. No live API access occurs during comparison.
+
+### Input contract and FIFO
+
+`spec/UpdateBuildCorpus.py` accepts schema version 1, opaque `batchId`, UTC
+`period`, canonical millisecond UTC `generatedAt`, `patchVersion`,
+`requestedCount: 100`, `count: 1..100`, and `builds: [{code, sha256}]`.
+The SHA-256 covers the exact UTF-8 code string. The shared synthetic fixture is
+`tests/fixtures/test-build-batch-v1.json`, mirrored by PoB Codes' shared-types
+package. Limits are 150 KiB per code, 4 MiB inflated XML, and 16 MiB per batch.
+The importer validates every code and rejects DTD/entities and malformed input
+before constructing the next corpus. A short valid batch is accepted.
+
+New hashes append in batch order; the oldest are evicted beyond 500. Repeated
+batches are no-ops, a reused batch ID with different content fails, and an
+older/same-period replacement is ignored. All-duplicate new monthly batches
+still record their identity. `manifest.json` records ordered hashes, batch
+identities, ETag, and the corpus digest; `codes/<sha256>.txt` retains the exact
+encoded bytes. A Git commit publishes the manifest and codes atomically.
+
+The daily updater polls conditionally, retries transport/429/5xx at most three
+times with bounded waits, and respects Retry-After. Invalid responses preserve
+the previous commit. A competing writer makes a normal fast-forward push fail;
+the next daily run refetches and reapplies. Never force-push the corpus branch.
+Manual reproduction, without publishing:
+
+```sh
+python spec/UpdateBuildCorpus.py --url https://api.pob.codes/test-builds --prior /tmp/pob-corpus --output /tmp/pob-next
+```
+
+### Activation and ownership
+
+The workflow files can first be reviewed against `Paliak/PathOfBuilding`'s
+`tests-branch`. GitHub schedules only execute registered default-branch
+workflows: a merge solely to `tests-branch` is not scheduled activation. The
+CI maintainer must carry the updater and helpers onto the default branch, allow
+its scoped `contents: write` token to push `build-test-corpus`, and set repository
+variable `TEST_BUILD_CORPUS_ENABLED=true`. The updater only runs from that default
+branch and uses a serialized, non-cancelling writer group. No API secret is
+needed. Never give PR comparison jobs write credentials.
+
+Enable the PoB Codes provider first, then manually dispatch the updater from
+the default branch and verify the first corpus commit. Until the variable is
+enabled, only fixed-fixture smoke comparisons run. Enabling it before bootstrap
+causes corpus comparison to fail explicitly rather than silently skip inputs.
+PR jobs pin explicit base/head SHAs and a fetched corpus commit. If the provider
+later becomes unavailable, existing corpus comparisons continue offline.
+
+The original tests-branch runtime is from 2024 and cannot calculate the tested
+modern 3.28 export. Integrating a supported modern PoB revision is a prerequisite
+for enabling monthly corpus comparisons; this PR does not merge the entire dev
+branch. Same-revision checks have passed with five fixed fixtures, one current
+public build, and one synthetic minion build using the modern dev runtime.
+Benchmark 100 distinct inputs and then the full 500-input corpus on the target
+GitHub runner before making the rotating job required. Repeated copies of one
+build are not representative capacity evidence. The CI maintainer owns runtime
+support and corpus health; the provider maintainer owns patch selection and
+monthly publication.
+
+For local unit tests, `docker compose run --rm --no-TTY busted-tests` retains
+the existing Busted suite. The new Python tests run in `unittest.yml` alongside
+it. Standard public GitHub-hosted runners are the intended execution target;
+confirm repository billing policy before enabling on a private fork.
+
 # Table of contents
 1. [Reporting bugs](#reporting-bugs)
 2. [Requesting features](#requesting-features)

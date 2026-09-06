@@ -31,20 +31,3 @@ services:
     working_dir: /workdir
     volumes:
       - ./:/workdir:ro
-  busted-diff:
-    #build: .
-    image: ghcr.io/paliak/busted-tests:latest
-    environment: #Where in the container the folders are stored
-      WORKDIR: /workdir
-      HOME: /tmp
-      DEVREF: ${DEVREF:-origin/dev}
-      HEADREF: $HEADREF
-    container_name: busted-diff
-    tty: true
-    user: nobody:nobody
-    command: /bin/sh -c "dos2unix < /workdir/spec/BuildDiff.sh | /bin/sh"
-    security_opt:
-      - no-new-privileges:true
-    working_dir: /workdir
-    volumes:
-      - ./:/workdir:ro

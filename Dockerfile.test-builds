@@ -1,0 +1,2 @@
+FROM ghcr.io/paliak/busted-tests@sha256:0ce3f27d276dd6918d78ae11339e4135c445ea0e4fd31dbc88087ea25232ed90
+RUN luarocks install luautf8 0.1.6-1
