@@ -1,93 +1,79 @@
----
-name: Run Tests
+name: Compare saved builds
 on:
   pull_request:
-    branches:
-      - dev
+    branches: [dev, tests-branch]
   workflow_dispatch:
+    inputs:
+      base_ref:
+        description: Base commit or ref (empty uses this workflow's commit)
+        type: string
+      head_ref:
+        description: Candidate commit or ref (empty uses this workflow's commit)
+        type: string
+      strict:
+        description: Fail on stat differences as well as calculation errors
+        type: boolean
+        default: false
+permissions:
+  contents: read
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: build-corpus-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  run_build_diff:
+  fixture_smoke:
+    name: Fixed fixture comparison
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - name: Checkout HEAD
-        uses: actions/checkout@v4
-      - name: Fetch Dev branch
-        id: get-dev-ref
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Compare every fixed fixture on base and candidate
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref || github.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.sha || inputs.head_ref || github.sha }}
+          STRICT_DIFF: ${{ inputs.strict }}
         run: |
-            git fetch --depth=1 origin dev
-            echo "devref=$(git rev-parse origin/dev)" >> $GITHUB_OUTPUT
-      - name: Download Dev branch cache
-        id: download-dev-ref-cache
-        uses: dawidd6/action-download-artifact@3ecf4024886f219d9290351234889bfb45d1b9da
-        with:
-          name: cache-devref-${{ steps.get-dev-ref.outputs.devref }}
-          path: /tmp/cache/
-          if_no_artifact_found: warn
-          search_artifacts: true
-      # Dev ref cache contains the build list and build xmls. Use that one to keep tests reproducible
-      - name: Update static builds list from cache
-        if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'true' }}
-        run: cat /tmp/cache/builds.txt > spec/builds.txt
-      - name: Download latest build list
-        if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'false' }}
-        id: download-build-list
-        uses: dawidd6/action-download-artifact@3ecf4024886f219d9290351234889bfb45d1b9da
-        with:
-          name: builds.txt
-          path: /tmp/latestbuildlist/
-          workflow: updatebuildlist.yml
-          if_no_artifact_found: warn
-          search_artifacts: true
-      - name: Update static builds list
-        if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'false' && steps.download-build-list.outputs.found_artifact == 'true' }}
-        run: cat /tmp/latestbuildlist/builds.txt > spec/builds.txt
-      - name: Download latest build xmls
-        if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'false' }}
-        uses: dawidd6/action-download-artifact@3ecf4024886f219d9290351234889bfb45d1b9da
-        with:
-          name: build-xmls
-          path: /tmp/cache/
-          if_no_artifact_found: warn
-          search_artifacts: true
-      - name: Calculate build xmls and differences between them
+          args=()
+          if [ "$STRICT_DIFF" = true ]; then args+=(--strict); fi
+          python spec/RunBuildDiff.py --base "$BASE_REF" --head "$HEAD_REF" --fixtures-only --output "$RUNNER_TEMP/fixture-diff" "${args[@]}"
+      - name: Run importer and runner contract tests
         run: |
-            mkdir /tmp/cache || true # Make sure /tmp/cache exists. Ignore exit code
-            chmod -R 777 /tmp/cache && docker compose run -v '/tmp/cache/:/cache' -e 'CACHEDIR=/cache' busted-diff | tee /tmp/dockerlog
-      - name: Generate artefact
+          python -m unittest discover -s tests -p 'test_update_build_corpus.py' -v
+          python -m unittest discover -s tests -p 'test_build_diff_contract.py' -v
+      - name: Test output comparison semantics
         run: |
-          sed -n '/Runtime comparison for/,/Savefile Diff for/{/Savefile Diff for/!p;}' /tmp/dockerlog > /tmp/artefact
-          sed -n '/Savefile Diff for/, $p' /tmp/dockerlog >> /tmp/artefact
-          [ -s /tmp/artefact ] || rm /tmp/artefact
-      - name: Upload artefact
-        uses: actions/upload-artifact@v4
+          docker build -t pob-corpus-contracts -f Dockerfile.test-builds .
+          docker run --rm --network none --mount "type=bind,source=$PWD,target=/workdir,readonly" -w /workdir pob-corpus-contracts luajit tests/test_diff_output.lua
+  corpus_comparison:
+    name: Complete rotating corpus comparison
+    if: vars.TEST_BUILD_CORPUS_ENABLED == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          name: build-diff-output
-          path: /tmp/artefact
-      - name: Save used build list into cache
-        if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'false' }}
-        run: cp spec/builds.txt /tmp/cache/
-      - name: Move xmls found in builds.txt to a new directory
-        if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'false' && steps.download-build-list.outputs.found_artifact == 'true' }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Pin saved corpus once
         run: |
-          mkdir new-build-xmls
-          while IFS= read -r line; do
-              FILENAME="/tmp/cache/${line//[^a-zA-Z0-9]/}.xml"
-              if [ -f "$FILENAME" ]; then
-                  mv "$FILENAME" "./new-build-xmls/"
-              fi
-          done < "spec/builds.txt"
-      - name: Upload new build xmls
-        if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'false' && steps.download-build-list.outputs.found_artifact == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-xmls
-          path: './new-build-xmls/*'
-      - name: Upload dev ref cache
-        if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'false' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: cache-devref-${{ steps.get-dev-ref.outputs.devref }}
-          path: /tmp/cache/
+          git fetch origin refs/heads/build-test-corpus
+          CORPUS_SHA=$(git rev-parse FETCH_HEAD)
+          echo "Pinned corpus commit: $CORPUS_SHA"
+          git worktree add --detach "$RUNNER_TEMP/corpus" "$CORPUS_SHA"
+      - name: Calculate all saved inputs without provider requests
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref || github.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.sha || inputs.head_ref || github.sha }}
+          STRICT_DIFF: ${{ inputs.strict }}
+        run: |
+          args=()
+          if [ "$STRICT_DIFF" = true ]; then args+=(--strict); fi
+          python spec/RunBuildDiff.py --base "$BASE_REF" --head "$HEAD_REF" --corpus "$RUNNER_TEMP/corpus" --output "$RUNNER_TEMP/corpus-diff" "${args[@]}"

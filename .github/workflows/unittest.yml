@@ -4,14 +4,20 @@ on:
   push:
     branches:
       - dev
+      - tests-branch
   pull_request:
     branches:
       - dev
+      - tests-branch
+permissions:
+  contents: read
 jobs:
   run_unit_tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Run busted tests
         run: docker compose run --no-TTY busted-tests

@@ -1,5 +1,8 @@
 # Contributing to Path of Building
 
+For the monthly test-build feed, local calculation comparisons, and CI activation,
+see [Build corpus CI](docs/build-corpus-ci.md).
+
 # Table of contents
 1. [Reporting bugs](#reporting-bugs)
 2. [Requesting features](#requesting-features)

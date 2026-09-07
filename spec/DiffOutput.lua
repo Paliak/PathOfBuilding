@@ -8,11 +8,15 @@ local function buildOutputMap(filecontent)
 	local playerOutput = {}
     local minionOutput = {}
 	for line in splitLines(filecontent) do
-		local key, val = line:match('PlayerStat stat="(.-)" value="(.-)"')
+		local playerTag = line:match('<PlayerStat%s+(.-)/>')
+		local key = playerTag and playerTag:match('stat="(.-)"')
+		local val = playerTag and playerTag:match('value="(.-)"')
         if key then
 		    playerOutput[key] = val
 		else
-			local key,val = line:match('MinionStat stat="(.-)" value="(.-)"')
+			local minionTag = line:match('<MinionStat%s+(.-)/>')
+			local key = minionTag and minionTag:match('stat="(.-)"')
+			local val = minionTag and minionTag:match('value="(.-)"')
 			if key then
 				minionOutput[key] = val
 			end
@@ -27,6 +31,10 @@ local devhnd = io.open(arg[2], "r")
 if headhnd and devhnd then
 	local playerHEADOutput, minionHEADOutput = buildOutputMap(headhnd:read("*a"))
 	local playerDEVOutput, minionDEVOutput = buildOutputMap(devhnd:read("*a"))
+	if next(playerHEADOutput) == nil or next(playerDEVOutput) == nil then
+		print("Missing calculated player output")
+		os.exit(2)
+	end
 	local mismatch = {}
     local mismatchFound = false
 	for key, val in pairs(playerHEADOutput) do

@@ -1,0 +1,7 @@
+FROM ghcr.io/pathofbuildingcommunity/pathofbuilding-tests@sha256:171dc3da232b8c874882e4ae3b3aa4a6e130a6c9450a31904b312435a6bf5daf AS modern_luajit
+FROM ghcr.io/paliak/busted-tests@sha256:0ce3f27d276dd6918d78ae11339e4135c445ea0e4fd31dbc88087ea25232ed90
+RUN luarocks install luautf8 0.1.6-1
+# Retain the existing test dependencies, but use upstream's GC64-capable LuaJIT.
+COPY --from=modern_luajit /usr/local/bin/luajit-2.1.1784580905 /usr/local/bin/luajit-current
+COPY --from=modern_luajit /usr/local/share/luajit-2.1 /usr/local/share/luajit-2.1
+RUN ln -sf /usr/local/bin/luajit-current /usr/local/bin/luajit
