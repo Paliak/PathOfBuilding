@@ -206,7 +206,7 @@ While both can be ran locally it's recommended to use the provided docker image 
 
 To run the unit tests run `docker compose up busted-tests`. This option uses the [Busted](https://olivinelabs.com/busted/) framework to test values returned by specific functions. For more details see the implementation of the tests in `spec/System/`.
 
-To run the build difference tests run `docker compose up busted-diff`. `busted-diff` busted diff first computes a list of builds found in `spec/builds.txt` and `spec/TestBuilds/` while checked out to the current working changes. Then it uses git to checkout the branch specified by `DEVREF` or `dev` by default and computes the same builds. Lastly it finds the differences in the outputs generated from both, does some post processing, and prints all of the information out.
+To run the build difference tests run `docker compose up busted-diff`. `busted-diff` first downloads the build corpus from `https://api.pob.codes/test-builds/corpus` and computes it alongside `spec/TestBuilds/` using the current working changes. Then it uses git to checkout the branch specified by `DEVREF` or `dev` by default and computes the same builds. Lastly it finds the differences in the outputs generated from both, does some post processing, and prints all of the information out. The downloaded builds and list stay with the calculated `DEVREF` cache and are reused together until that cache changes.
 
 `busted-diff` supports the following options through environment variables:
 - `DEVREF`: Defines the branch to use as the reference against which to compare builds computed with new changes.
