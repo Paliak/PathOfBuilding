@@ -1,3 +1,15 @@
+-- Use the same test exporter on both revisions, including bases whose normal
+-- SaveDB does not support the old fullPlayerStat/fullMinionStat options.
+local appendStats = dofile("../spec/BuildStats.lua")
+local saveBuild = build.Save
+function build:Save(xml)
+	saveBuild(self, xml)
+	appendStats(xml, self.calcsTab.mainOutput, "PlayerStat")
+	if self.calcsTab.mainOutput.Minion then
+		appendStats(xml, self.calcsTab.mainOutput.Minion, "MinionStat")
+	end
+end
+
 local function fetchBuilds(path)
     local lastDLtime = GetTime()
     local co = coroutine.create(function(path)
@@ -78,7 +90,7 @@ for testBuild in fetchBuilds("../spec/TestBuilds") do
 
     -- Save the computed build xml. Include full minion and player outputs.
     local buildHnd = io.open(filePath .. ".build", "w+")
-    buildHnd:write(build:SaveDB("Cache", {fullPlayerStat = true, fullMinionStat = true} ))
+    buildHnd:write(build:SaveDB("Cache"))
     buildHnd:close()
 
     -- Save the amount of time calculation of this build took
