@@ -33,7 +33,7 @@ cp "$CACHEDIR/builds.txt" spec/builds.txt
 calculate() {
     export BUILDCACHEPREFIX="$1"
     mkdir -p "$BUILDCACHEPREFIX"
-    cat spec/builds.txt | dos2unix | parallel --jobs "${BUILD_JOBS:-2}" --halt soon,fail=1 --will-cite --ungroup --pipe -N50 \
+    cat spec/builds.txt | dos2unix | parallel --jobs "${BUILD_JOBS:-2}" --halt now,fail=1 --will-cite --ungroup --pipe -N50 \
         'batch=$(mktemp); cat > "$batch"; BUILDLINKS="$batch" busted --lua=luajit -r generate'
     busted --lua=luajit -r generate
     expected=$(( $(wc -l < spec/builds.txt) + $(find spec/TestBuilds -maxdepth 1 -name '*.xml' | wc -l) ))
