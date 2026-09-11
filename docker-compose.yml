@@ -1,7 +1,7 @@
 services:
   busted-tests:
     #build: .
-    image: ghcr.io/pathofbuildingcommunity/pathofbuilding-tests:latest
+    image: &test-image ghcr.io/pathofbuildingcommunity/pathofbuilding-tests@sha256:171dc3da232b8c874882e4ae3b3aa4a6e130a6c9450a31904b312435a6bf5daf
     environment:
       HOME: /tmp
       LUA_PATH: "/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
@@ -30,7 +30,7 @@ services:
       - ./:/workdir:ro
   busted-diff:
     #build: .
-    image: ghcr.io/pathofbuildingcommunity/pathofbuilding-tests:latest
+    image: *test-image
     environment: #Where in the container the folders are stored
       WORKDIR: /workdir
       HOME: /tmp
