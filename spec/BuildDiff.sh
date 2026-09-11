@@ -62,12 +62,16 @@ else
 fi
 [ "${BASE_ONLY:-0}" != 1 ] || exit 0
 
-# Differences are findings. Missing files or a failed comparison are errors.
+# Keep the full report, collecting stat differences for the final summary/check.
+: > /tmp/build-stat-diffs
 report() {
     title=$1; language=$2; shift 2
     if output=$("$@"); then return; else status=$?; fi
     [ "$status" -eq 1 ] && [ -n "$output" ] || return "$status"
     printf '## %s\n```%s\n%s\n```\n' "$title" "$language" "$output"
+    case "$title" in
+        "Output Diff for "*) printf '## %s\n%s\n' "$title" "$output" >> /tmp/build-stat-diffs ;;
+    esac
 }
 compared=0
 for base in "$CACHEDIR"/*.build; do
@@ -80,3 +84,4 @@ for base in "$CACHEDIR"/*.build; do
     compared=$((compared + 1))
 done
 echo "[+] Compared $compared builds: $DEV_SHA -> $headsha"
+luajit spec/BuildSummary.lua /tmp/build-stat-diffs "$compared" "$DEV_SHA" "$headsha"

@@ -61,12 +61,15 @@ jobs:
         shell: bash
         run: |
           mkdir -p /tmp/pob-cache
+          result=0
           docker compose run --rm -v /tmp/pob-cache:/cache \
             -v "$CORPUS_FILE:/corpus.json:ro" -e CORPUS_FILE=/corpus.json \
-            busted-diff | tee /tmp/dockerlog
+            busted-diff | tee /tmp/dockerlog || result=$?
           test -f "/tmp/pob-cache/$CACHE_KEY/$DEVREF"
+          echo "base_complete=true" >> "$GITHUB_OUTPUT"
+          exit "$result"
       - name: Save the completed base
-        if: success() && steps.cache.outputs.cache-hit != 'true'
+        if: ${{ !cancelled() && steps.calculate.outputs.base_complete == 'true' && steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v4
         continue-on-error: true
         with:
@@ -79,6 +82,10 @@ jobs:
           if [ -f /tmp/dockerlog ]; then
             sed -n '/^## /,$p' /tmp/dockerlog > /tmp/build-diff-output
             [ -s /tmp/build-diff-output ] || rm -f /tmp/build-diff-output
+            sed -n '/^## Build comparison summary$/,$p' /tmp/dockerlog >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ ! -s "$GITHUB_STEP_SUMMARY" ]; then
+            printf '## Build comparison summary\n\nCalculation or comparison did not finish. See the **Calculate builds** log for the error.\n' >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Upload comparison output
         if: always() && env.BASE_ONLY != '1'
