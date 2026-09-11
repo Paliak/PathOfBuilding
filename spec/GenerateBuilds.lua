@@ -10,91 +10,44 @@ function build:Save(xml)
 	end
 end
 
-local function fetchBuilds(path)
-    local lastDLtime = GetTime()
-    local co = coroutine.create(function(path)
-        if os.getenv("BUILDLINKS") then
-            local fileHnd, errMsg = io.open(os.getenv("BUILDLINKS"), "r")
-            if not fileHnd then error(errMsg) end
-            local fileText = fileHnd:read("*a")
-            fileHnd:close()
-            for line in splitLines(fileText) do
-                if line ~= "" then
-                    local filename = line:gsub('%W', '')
-                    -- Check cached XML before matching a download provider.
-                    local fileHnd = io.open((os.getenv("CACHEDIR") or "/tmp") .. "/" .. filename .. ".xml", "r")
-                    if fileHnd then
-                        coroutine.yield({ xml = fileHnd:read("*a"), filename = filename, link = line })
-                        fileHnd:close()
-                    else
-                        for j = 1, #buildSites.websiteList do
-                            if line:match(buildSites.websiteList[j].matchURL) then
-                                -- Throttle build downloads to 15 per 10 seconds
-                                local timeSinceLastDL = GetTime() - lastDLtime
-                                if timeSinceLastDL < 666 then
-                                    posix.nanosleep(0, (666 - timeSinceLastDL) * 1000000)
-                                end
-                                buildSites.DownloadBuild(line, buildSites.websiteList[j], function(isSuccess, data)
-                                    lastDLtime = GetTime()
-                                    if isSuccess then
-                                        local xml = Inflate(common.base64.decode(data:gsub("-", "+"):gsub("_", "/")))
-                                        local xmlHnd = io.open((os.getenv("CACHEDIR") or "/tmp") .. "/" .. filename .. ".xml", "w")
-                                        xmlHnd:write(xml)
-                                        xmlHnd:close()
-                                        coroutine.yield({ xml = xml, filename = filename, link = line })
-                                    else
-                                        print("Failed to download build: " .. line)
-                                    end
-                                end)
-                                break
-                            elseif j == #buildSites.websiteList then
-                                print("Failed to match provider for: " .. line)
-                            end
-                        end
-                    end
-                end
-            end
-        else
-            for file in lfs.dir(path) do
-                if file ~= "." and file ~= ".." then
-                    local f = path .. '/' .. file
-                    local attr = lfs.attributes(f)
-                    assert(type(attr) == "table")
-                    if attr.mode ~= "directory" and file:match("^.+(%..+)$") == ".xml" then
-                        local fileHnd, errMsg = io.open(f, "r")
-                        if not fileHnd then error(errMsg) end
-                        local fileText = fileHnd:read("*a")
-                        fileHnd:close()
-                        coroutine.yield({ xml = fileText, filename = file })
-                    end
-                end
-            end
-        end
-    end)
-    return function()
-        local ok, result = coroutine.resume(co, path)
-        if not ok then error(result) end
-        return result
-    end
+-- The API adapter supplies local XML files. A missing file is a failed test,
+-- not a reason to try another download provider or silently skip the build.
+local inputs = {}
+if os.getenv("BUILDLINKS") then
+	local list = assert(io.open(os.getenv("BUILDLINKS"), "r"))
+	for name in list:lines() do
+		name = name:gsub("\r$", "")
+		assert(#name == 64 and name:match("^%x+$"), "Invalid corpus build name")
+		inputs[#inputs + 1] = { filename = name, path = assert(os.getenv("CACHEDIR")) .. "/" .. name .. ".xml" }
+	end
+	list:close()
+else
+	for name in lfs.dir("../spec/TestBuilds") do
+		if name:match("%.xml$") then
+			inputs[#inputs + 1] = { filename = name, path = "../spec/TestBuilds/" .. name }
+		end
+	end
 end
 
-for testBuild in fetchBuilds("../spec/TestBuilds") do
-    local filePath = (os.getenv("BUILDCACHEPREFIX") or "/tmp") .. "/" .. testBuild.filename
-    local startTime = GetTime()
+for _, input in ipairs(inputs) do
+	local file = assert(io.open(input.path, "r"))
+	local xml = file:read("*a")
+	file:close()
+	local document, err = common.xml.ParseXML(xml)
+	assert(document and not err and document[1] and document[1].elem == "PathOfBuilding", "Invalid build XML: " .. input.filename)
+	local filePath = (os.getenv("BUILDCACHEPREFIX") or "/tmp") .. "/" .. input.filename
+	local startTime = GetTime()
+	print("[+] Computing " .. filePath)
+	loadBuildFromXML(xml)
+	assert(not build.abortSave and type(build.calcsTab.mainOutput.Life) == "number", "No calculated output: " .. input.filename)
+	local calcDuration = GetTime() - startTime
+	print("[-] Computed " .. filePath .. " in " .. calcDuration .. "ms")
 
-    -- Compute the build
-    print("[+] Computing " .. filePath)
-    loadBuildFromXML(testBuild.xml)
-    local calcDuration = GetTime() - startTime
-    print("[-] Computed " .. filePath .. " in " .. calcDuration .. "ms")
-
-    -- Save the computed build xml. Include full minion and player outputs.
-    local buildHnd = io.open(filePath .. ".build", "w+")
-    buildHnd:write(build:SaveDB("Cache"))
-    buildHnd:close()
-
-    -- Save the amount of time calculation of this build took
-    local timeHnd = io.open(filePath .. ".time", "w+")
-    timeHnd:write(calcDuration)
-    timeHnd:close()
+	local saved = assert(build:SaveDB("Cache"), "Could not save " .. input.filename)
+	local buildFile = assert(io.open(filePath .. ".build", "w"))
+	buildFile:write(saved)
+	buildFile:close()
+	local timeFile = assert(io.open(filePath .. ".time", "w"))
+	timeFile:write(calcDuration)
+	timeFile:close()
 end

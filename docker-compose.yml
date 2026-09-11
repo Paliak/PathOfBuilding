@@ -15,7 +15,7 @@ services:
         luarocks install lua-zlib 1.4-0
         if [ -n "$${CACHEDIR:-}" ]; then
           mkdir -p "$$CACHEDIR"
-          chown nobody:nobody "$$CACHEDIR"
+          chown -R nobody:nobody "$$CACHEDIR"
         fi
         exec su -p nobody -s /bin/sh -c "$$*"
       - --
@@ -35,6 +35,8 @@ services:
       WORKDIR: /workdir
       HOME: /tmp
       CACHEDIR: /cache
+      BASE_ONLY: ${BASE_ONLY:-0}
+      BUILD_JOBS: ${BUILD_JOBS:-2}
       DEVREF: ${DEVREF:-origin/dev}
       HEADREF: ${HEADREF:-}
       LUA_PATH: "/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
