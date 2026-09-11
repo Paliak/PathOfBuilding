@@ -1,50 +1,96 @@
----
 name: Run Build Diff Tests
 on:
   pull_request:
-    branches:
-      - dev
+    branches: [dev]
+  schedule:
+    - cron: '17 4 * * *'
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Compare builds or prepare the shared baseline
+        type: choice
+        options: [compare, prepare]
+        default: compare
+      base_ref:
+        description: Base branch or commit
+        default: dev
+permissions:
+  contents: read
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: build-diff-${{ github.event_name == 'pull_request' && github.ref || 'baseline' }}
   cancel-in-progress: true
 jobs:
   run_build_diff:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BASE_ONLY: ${{ (github.event_name == 'schedule' || inputs.mode == 'prepare') && '1' || '0' }}
     steps:
-      - name: Checkout HEAD
+      - name: Checkout test code
         uses: actions/checkout@v4
-      - name: Fetch Dev branch
-        id: get-dev-ref
-        run: |
-            git fetch --depth=1 origin dev
-            echo "devref=$(git rev-parse origin/dev)" >> "$GITHUB_OUTPUT"
-      - name: Download Dev branch cache
-        id: download-dev-ref-cache
-        uses: dawidd6/action-download-artifact@3ecf4024886f219d9290351234889bfb45d1b9da
         with:
-          name: corpus-cache-devref-${{ steps.get-dev-ref.outputs.devref }}
-          path: /tmp/cache/
-          if_no_artifact_found: warn
-          search_artifacts: true
-      - name: Calculate build xmls and differences between them
+          persist-credentials: false
+      - name: Select base and download the corpus once
+        id: inputs
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref || 'dev' }}
         shell: bash
         run: |
-            mkdir /tmp/cache || true # Make sure /tmp/cache exists. Ignore exit code
-            chmod -R 777 /tmp/cache && docker compose run -v '/tmp/cache/:/cache' -e 'CACHEDIR=/cache' busted-diff | tee /tmp/dockerlog
-      - name: Generate artefact
+          git fetch --depth=1 origin "$BASE_REF"
+          export DEVREF=$(git rev-parse FETCH_HEAD)
+          source spec/BuildCache.sh
+          echo "base=$DEV_SHA" >> "$GITHUB_OUTPUT"
+          echo "key=$CACHE_KEY" >> "$GITHUB_OUTPUT"
+          echo "corpus=$CORPUS_FILE" >> "$GITHUB_OUTPUT"
+          echo "Baseline cache: $CACHE_KEY"
+      - name: Find or restore the calculated base
+        id: cache
+        uses: actions/cache/restore@v4
+        continue-on-error: true
+        with:
+          key: ${{ steps.inputs.outputs.key }}
+          path: /tmp/pob-cache/${{ steps.inputs.outputs.key }}
+          lookup-only: ${{ env.BASE_ONLY == '1' }}
+      - name: Calculate builds
+        id: calculate
+        if: env.BASE_ONLY != '1' || steps.cache.outputs.cache-hit != 'true'
+        env:
+          DEVREF: ${{ steps.inputs.outputs.base }}
+          CORPUS_FILE: ${{ steps.inputs.outputs.corpus }}
+          CACHE_KEY: ${{ steps.inputs.outputs.key }}
+        shell: bash
         run: |
-          sed -n '/Runtime comparison for/,/Savefile Diff for/{/Savefile Diff for/!p;}' /tmp/dockerlog > /tmp/artefact
-          sed -n '/Savefile Diff for/, $p' /tmp/dockerlog >> /tmp/artefact
-          [ -s /tmp/artefact ] || rm /tmp/artefact
-      - name: Upload artefact
+          mkdir -p /tmp/pob-cache
+          result=0
+          docker compose run --rm -v /tmp/pob-cache:/cache \
+            -v "$CORPUS_FILE:/corpus.json:ro" -e CORPUS_FILE=/corpus.json \
+            busted-diff | tee /tmp/dockerlog || result=$?
+          test -f "/tmp/pob-cache/$CACHE_KEY/$DEVREF"
+          echo "base_complete=true" >> "$GITHUB_OUTPUT"
+          exit "$result"
+      - name: Save the completed base
+        if: ${{ !cancelled() && steps.calculate.outputs.base_complete == 'true' && steps.cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          key: ${{ steps.inputs.outputs.key }}
+          path: /tmp/pob-cache/${{ steps.inputs.outputs.key }}
+      - name: Collect comparison output
+        if: always() && env.BASE_ONLY != '1' && steps.calculate.outcome != 'skipped'
+        shell: bash
+        run: |
+          if [ -f /tmp/dockerlog ]; then
+            sed -n '/^## /,$p' /tmp/dockerlog > /tmp/build-diff-output
+            [ -s /tmp/build-diff-output ] || rm -f /tmp/build-diff-output
+            sed -n '/^## Build comparison summary$/,$p' /tmp/dockerlog >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ ! -s "$GITHUB_STEP_SUMMARY" ]; then
+            printf '## Build comparison summary\n\nCalculation or comparison did not finish. See the **Calculate builds** log for the error.\n' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload comparison output
+        if: always() && env.BASE_ONLY != '1'
         uses: actions/upload-artifact@v4
         with:
           name: build-diff-output
-          path: /tmp/artefact
-      - name: Upload dev ref cache
-        if: ${{ steps.download-dev-ref-cache.outputs.found_artifact == 'false' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: corpus-cache-devref-${{ steps.get-dev-ref.outputs.devref }}
-          path: /tmp/cache/
+          path: /tmp/build-diff-output
+          if-no-files-found: ignore

@@ -2,80 +2,86 @@
 set -eo pipefail
 umask 0
 
-# If external cache dir has not been defined keep it inside the container
-if [[ -z "$CACHEDIR" ]]
-then
-    mkdir /tmp/cachedir
-    export CACHEDIR="/tmp/cachedir"
-fi
-
-# Copy mounted workdir to allow for changes during test run
-rm -rf /tmp/workdir && mkdir /tmp/workdir && cp -rf "$WORKDIR"/. /tmp/workdir/ && cd /tmp/workdir
-
+# Work on a copy: checking out the base must not change the user's checkout.
+rm -rf /tmp/workdir
+mkdir /tmp/workdir
+cp -rf "$WORKDIR"/. /tmp/workdir/
+cd /tmp/workdir
 git config --global --add safe.directory /tmp/workdir
 git config --global --add advice.detachedHead false
-
-if [[ ! -z "$HEADREF" ]]
-then
-    git diff --no-color "$HEADREF" -- /tmp/workdir/.busted /tmp/workdir/src/HeadlessWrapper.lua /tmp/workdir/spec/ > /tmp/HeadPatch &&
-    git reset --hard "$HEADREF" && git clean -fd && git apply --allow-empty --index /tmp/HeadPatch
+if [ -n "$HEADREF" ]; then
+    git diff --binary "$HEADREF" -- .busted src/HeadlessWrapper.lua spec/ > /tmp/HeadPatch
+    git reset --hard "$HEADREF"
+    git clean -fd
+    git apply --allow-empty --index /tmp/HeadPatch
 fi
-
 headsha=$(git rev-parse HEAD)
-devsha=$(git rev-parse "$DEVREF")
 
-# Keep the input corpus with the calculated base, as in the existing workflow.
-if [[ ! -f "$CACHEDIR/$devsha" ]]; then
-    curl --fail --show-error --silent https://api.pob.codes/test-builds/corpus -o "$CACHEDIR/corpus.json"
+# The same response and test tools identify the inputs and calculated base.
+. ./spec/BuildCache.sh
+export CACHEDIR="${CACHEDIR:-/tmp/cachedir}/$CACHE_KEY"
+mkdir -p "$CACHEDIR"
+echo "[+] Baseline cache: $CACHE_KEY"
+if [ ! -f "$CACHEDIR/$DEV_SHA" ]; then
+    rm -f "$CACHEDIR"/*.build "$CACHEDIR"/*.time
+    cp "$CORPUS_FILE" "$CACHEDIR/corpus.json"
     luajit spec/FetchTestBuilds.lua "$CACHEDIR"
 fi
 cp "$CACHEDIR/builds.txt" spec/builds.txt
 
-rm -rf /tmp/headsha && mkdir /tmp/headsha
-rm -f /tmp/workdir/src/Settings.xml
-cat /tmp/workdir/spec/builds.txt | dos2unix | parallel --will-cite --ungroup --pipe -N50 'LINKSBATCH="$(mktemp){#}"; cat > $LINKSBATCH; BUILDLINKS="$LINKSBATCH" BUILDCACHEPREFIX="/tmp/headsha" busted --lua=luajit -r generate' && \
-BUILDCACHEPREFIX='/tmp/headsha' busted --lua=luajit -r generate && date > "/tmp/headsha/$headsha" && echo "[+] Build cache computed for $headsha (headsha)" || exit $?
+# Restart PoB after each batch of 50, then calculate the checked-in fixtures.
+calculate() {
+    export BUILDCACHEPREFIX="$1"
+    mkdir -p "$BUILDCACHEPREFIX"
+    cat spec/builds.txt | dos2unix | parallel --jobs "${BUILD_JOBS:-2}" --halt now,fail=1 --will-cite --ungroup --pipe -N50 \
+        'batch=$(mktemp); cat > "$batch"; BUILDLINKS="$batch" busted --lua=luajit -r generate'
+    busted --lua=luajit -r generate
+    expected=$(( $(wc -l < spec/builds.txt) + $(find spec/TestBuilds -maxdepth 1 -name '*.xml' | wc -l) ))
+    actual=$(find "$BUILDCACHEPREFIX" -maxdepth 1 -name '*.build' | wc -l)
+    [ "$actual" -eq "$expected" ] || { echo "Expected $expected saved builds; got $actual" >&2; exit 1; }
+    echo "[+] Calculated $actual builds into $BUILDCACHEPREFIX"
+}
 
-if [[ ! -f "$CACHEDIR/$devsha" ]] # Output of builds outdated or nonexistent
-then
-	rm -rf "$CACHEDIR"/*.build
-
-    # Keep new changes to tests related files
-    git diff --no-color "$DEVREF" -- /tmp/workdir/.busted /tmp/workdir/src/HeadlessWrapper.lua /tmp/workdir/spec/ > /tmp/DevPatch && \
-    git reset --hard "$DEVREF" && git clean -fd && git apply --allow-empty --index /tmp/DevPatch && \
-    cat /tmp/workdir/spec/builds.txt | dos2unix | parallel --will-cite --ungroup --pipe -N50 'LINKSBATCH="$(mktemp){#}"; cat > $LINKSBATCH; BUILDLINKS="$LINKSBATCH" BUILDCACHEPREFIX="$CACHEDIR" busted --lua=luajit -r generate' && \
-    BUILDCACHEPREFIX="$CACHEDIR" busted --lua=luajit -r generate && date > "$CACHEDIR/$devsha" && echo "[+] Build cache computed for $devsha (devsha)" || exit $?
+# Normal PR/local runs calculate head. The nightly job only prepares the base.
+if [ "${BASE_ONLY:-0}" != 1 ]; then
+    rm -rf /tmp/headsha
+    rm -f src/Settings.xml
+    calculate /tmp/headsha
 fi
+if [ ! -f "$CACHEDIR/$DEV_SHA" ]; then
+    # Carry the same test harness across revisions, without copying game calculations.
+    git diff --binary "$DEV_SHA" -- .busted src/HeadlessWrapper.lua spec/ > /tmp/DevPatch
+    git reset --hard "$DEV_SHA"
+    git clean -fd
+    git apply --allow-empty --index /tmp/DevPatch
+    calculate "$CACHEDIR"
+    date > "$CACHEDIR/$DEV_SHA"
+    echo "[+] Base calculated: $DEV_SHA"
+else
+    echo "[+] Base reused: $DEV_SHA"
+fi
+[ "${BASE_ONLY:-0}" != 1 ] || exit 0
 
-for runTime in "$CACHEDIR"/*.time
-do
-    BASENAME=$(basename "$runTime")
-
-    DIFFOUTPUT=$(luajit spec/DiffRuntime.lua "/tmp/headsha/$BASENAME" "$runTime" "$BASENAME") || {
-        echo "## Runtime comparison for $BASENAME"
-        echo '```'
-        echo "$DIFFOUTPUT"
-        echo '```'
-    }
+# Keep the full report, collecting stat differences for the final summary/check.
+: > /tmp/build-stat-diffs
+report() {
+    title=$1; language=$2; shift 2
+    if output=$("$@"); then return; else status=$?; fi
+    [ "$status" -eq 1 ] && [ -n "$output" ] || return "$status"
+    printf '## %s\n```%s\n%s\n```\n' "$title" "$language" "$output"
+    case "$title" in
+        "Output Diff for "*) printf '## %s\n%s\n' "$title" "$output" >> /tmp/build-stat-diffs ;;
+    esac
+}
+compared=0
+for base in "$CACHEDIR"/*.build; do
+    name=$(basename "$base" .build)
+    report "Runtime comparison for $name.time" '' luajit spec/DiffRuntime.lua "/tmp/headsha/$name.time" "$CACHEDIR/$name.time" "$name.time"
+    xmllint --exc-c14n "$base" > /tmp/base.xml
+    xmllint --exc-c14n "/tmp/headsha/$name.build" > /tmp/head.xml
+    report "Savefile Diff for $name.build" diff diff /tmp/base.xml /tmp/head.xml
+    report "Output Diff for $name.build" '' luajit spec/DiffOutput.lua "/tmp/headsha/$name.build" "$base"
+    compared=$((compared + 1))
 done
-
-for build in "$CACHEDIR"/*.build
-do
-    BASENAME=$(basename "$build")
-
-    # Only print the header if there is a diff to display
-    DIFFOUTPUT=$(diff <(xmllint --exc-c14n "$build") <(xmllint --exc-c14n "/tmp/headsha/$BASENAME")) || {
-        echo "## Savefile Diff for $BASENAME"
-        echo '```diff'
-        echo "$DIFFOUTPUT"
-        echo '```'
-    }
-
-    # Dedicated output diff
-    DIFFOUTPUT=$(luajit spec/DiffOutput.lua "/tmp/headsha/$BASENAME" "$build") || {
-        echo "## Output Diff for $BASENAME"
-        echo '```'
-        echo "$DIFFOUTPUT"
-        echo '```'
-    }
-done
+echo "[+] Compared $compared builds: $DEV_SHA -> $headsha"
+luajit spec/BuildSummary.lua /tmp/build-stat-diffs "$compared" "$DEV_SHA" "$headsha"

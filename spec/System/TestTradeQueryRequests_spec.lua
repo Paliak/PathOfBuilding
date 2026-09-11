@@ -46,12 +46,10 @@ describe("TradeQueryRequests", function()
 		-- Pass: Dequeues and processes valid item
 		-- Fail: Queue unchanged, indicating timing/insertion bug, blocking trade searches
 		it("processes search queue item", function()
-			local orig_launch = launch
-			launch = {
-				DownloadPage = function(url, onComplete, opts)
-					onComplete({ body = "{}", header = "HTTP/1.1 200 OK" }, nil)
-				end
-			}
+			local download = stub(launch, "DownloadPage", function(self, url, onComplete, opts)
+				onComplete({ body = "{}", header = "HTTP/1.1 200 OK" }, nil)
+			end)
+			finally(function() download:revert() end)
 			table.insert(requests.requestQueue.search, {
 				url = "test",
 				callback = function() end,
@@ -63,7 +61,6 @@ describe("TradeQueryRequests", function()
 			mock_limiter.NextRequestTime = mock_next_time
 			requests:ProcessQueue()
 			assert.are.equal(#requests.requestQueue.search, 0)
-			launch = orig_launch
 		end)
 
 		-- Pass: Does not crash on 401, and passes error message
@@ -79,12 +76,10 @@ Server: cloudflare
 WWW-Authenticate: Bearer realm="pathofexile:production", error="invalid_token", error_description="The access token provided is invalid or has expired"
 Cache-Control: no-store
 Strict-Transport-Security: max-age=63115200; includeSubDomains; preload]]
-		local orig_launch = launch
-			launch = {
-				DownloadPage = function(url, onComplete, opts)
-					onComplete({ body = json, header = header }, nil)
-				end
-			}
+			local download = stub(launch, "DownloadPage", function(self, url, onComplete, opts)
+				onComplete({ body = json, header = header }, "Response code: 401")
+			end)
+			finally(function() download:revert() end)
 			table.insert(requests.requestQueue.search, {
 				url = "test",
 				callback = function(body, msg)
@@ -99,7 +94,6 @@ Strict-Transport-Security: max-age=63115200; includeSubDomains; preload]]
 			mock_limiter.NextRequestTime = mock_next_time
 			requests:ProcessQueue()
 			assert.are.equal(#requests.requestQueue.search, 0)
-			launch = orig_launch
 		end)
 
 		-- Pass: Retries with increasing backoff up to cap, preventing infinite loops

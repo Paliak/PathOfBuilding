@@ -1,9 +1,24 @@
 services:
   busted-tests:
     #build: .
-    image: ghcr.io/pathofbuildingcommunity/pathofbuilding-tests:latest
+    image: &test-image ghcr.io/pathofbuildingcommunity/pathofbuilding-tests@sha256:171dc3da232b8c874882e4ae3b3aa4a6e130a6c9450a31904b312435a6bf5daf
     environment:
       HOME: /tmp
+      LUA_PATH: "/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
+      LUA_CPATH: "/usr/lib/lua/5.1/?.so;;"
+    # The official image supplies LuaJIT; these are the existing script dependencies.
+    entrypoint: &test-entrypoint
+      - /bin/sh
+      - -ec
+      - |
+        apk add --no-cache git parallel libxml2-utils lua5.1-posix lua5.1-curl zlib-dev
+        luarocks install lua-zlib 1.4-0
+        if [ -n "$${CACHEDIR:-}" ]; then
+          mkdir -p "$$CACHEDIR"
+          chown -R nobody:nobody "$$CACHEDIR"
+        fi
+        exec su -p nobody -s /bin/sh -c "$$*"
+      - --
     container_name: pathofbuilding-tests
     command: busted --lua=luajit
     security_opt:
@@ -15,26 +30,25 @@ services:
       - ./:/workdir:ro
   busted-diff:
     #build: .
-    image: ghcr.io/pathofbuildingcommunity/pathofbuilding-tests:latest
+    image: *test-image
     environment: #Where in the container the folders are stored
       WORKDIR: /workdir
       HOME: /tmp
+      CACHEDIR: /cache
+      BASE_ONLY: ${BASE_ONLY:-0}
+      BUILD_JOBS: ${BUILD_JOBS:-2}
       DEVREF: ${DEVREF:-origin/dev}
-      HEADREF: $HEADREF
+      HEADREF: ${HEADREF:-}
       LUA_PATH: "/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
       LUA_CPATH: "/usr/lib/lua/5.1/?.so;;"
     container_name: busted-diff
-    tty: true
-    # Dependencies used by the existing build-diff scripts; the image provides LuaJIT.
-    command:
-      - /bin/sh
-      - -ec
-      - |
-        apk add --no-cache git parallel libxml2-utils lua5.1-posix lua5.1-curl zlib-dev
-        luarocks install lua-zlib 1.4-0
-        exec su -p nobody -s /bin/sh -c 'dos2unix < /workdir/spec/BuildDiff.sh | /bin/sh'
+    entrypoint: *test-entrypoint
+    command: ["dos2unix < /workdir/spec/BuildDiff.sh | /bin/sh"]
     security_opt:
       - no-new-privileges:true
     working_dir: /workdir
     volumes:
       - ./:/workdir:ro
+      - build-cache:/cache
+volumes:
+  build-cache:
