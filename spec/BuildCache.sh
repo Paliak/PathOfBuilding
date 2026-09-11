@@ -4,6 +4,7 @@ if [ -z "${CORPUS_FILE:-}" ]; then
     CORPUS_FILE=$(mktemp)
     curl --fail --show-error --silent --max-time 60 \
         https://api.pob.codes/test-builds/corpus -o "$CORPUS_FILE"
+    chmod a+r "$CORPUS_FILE" # The container reads this public feed as nobody.
 fi
 corpus_hash=$(sha256sum "$CORPUS_FILE" | cut -d ' ' -f 1)
 test_hash=$(git ls-files -z -- .busted docker-compose.yml src/HeadlessWrapper.lua \
