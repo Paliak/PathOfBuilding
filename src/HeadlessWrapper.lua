@@ -7,26 +7,6 @@
 -- bodies intended for headless use.
 dofile("_SimpleGraphic.def.lua")
 
--- Callbacks
-local callbackTable = { }
-local mainObject
-function runCallback(name, ...)
-	if callbackTable[name] then
-		return callbackTable[name](...)
-	elseif mainObject and mainObject[name] then
-		return mainObject[name](mainObject, ...)
-	end
-end
-function SetCallback(name, func)
-	callbackTable[name] = func
-end
-function GetCallback(name)
-	return callbackTable[name]
-end
-function SetMainObject(obj)
-	mainObject = obj
-end
-
 -- https://stackoverflow.com/questions/19326368/iterate-over-lines-including-blank-lines
 function splitLines(s)
 	if s:sub(-1)~="\n" then s=s.."\n" end
@@ -59,7 +39,6 @@ function GetVirtualScreenSize()
 	return 1920, 1080
 end
 
-<<<<<<< HEAD
 posix = require("posix")
 
 -- Search Handles
@@ -147,9 +126,6 @@ end
 
 dofile("Launch.lua")
 
--- The CI env var will be true when run from github workflows but should be false for other tools using the headless wrapper 
-__mainObject__.continuousIntegrationMode = os.getenv("CI")
-
 function launch:DownloadPage(url, callback, params)
 	params = params or {}
 	local responseHeader = ""
@@ -165,7 +141,7 @@ function launch:DownloadPage(url, callback, params)
 		easy:setopt(curl.OPT_HTTPHEADER, header)
 	end
 	easy:setopt_url(url)
-	easy:setopt(curl.OPT_USERAGENT, "Headless Path of Building" .. (mainObject.continuousIntegrationMode and " CI" or "") .. "/"..launch.versionNumber)
+	easy:setopt(curl.OPT_USERAGENT, "Headless Path of Building" .. "/"..launch.versionNumber)
 	easy:setopt(curl.OPT_ACCEPT_ENCODING, "")
 	if params.body then
 		easy:setopt(curl.OPT_POST, true)
