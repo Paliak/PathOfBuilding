@@ -4,6 +4,9 @@
 --  headless mode, in which case this file IS executed.
 ---@meta
 
+require "zlib"
+posix = require("posix")
+
 ---@alias Font "FIXED"|"VAR"|"VAR BOLD"|"FONTIN SC"|"FONTIN SC ITALIC"|"FONTIN"|"FONTIN ITALIC"
 
 ---@param name string
@@ -324,7 +327,23 @@ function fileSearchHandleClass:GetFileModifiedTime() end
 ---@param spec             string
 ---@param findDirectories? boolean
 ---@return FileSearchHandle
-function NewFileSearch(spec, findDirectories) end
+function NewFileSearch(spec, findDirectories)
+	local paths = posix.glob(spec)
+	local currentPath = 1
+	return paths and {GetFileName = function() 
+				return posix.basename(paths[currentPath])
+			end,
+			GetFileModifiedTime = function() 
+				return posix.lstat(paths[currentPath]).st_mtime
+			end,
+			GetFileSize = function()
+				return posix.lstat(paths[currentPath]).st_size
+			end,
+			NextFile = function()
+				currentPath = currentPath + 1
+				return paths[currentPath] 
+			end}
+end
 
 ---@param path string
 ---@return string?  name
@@ -363,19 +382,21 @@ function Paste() end
 ---@return string? compressedData
 ---@return string? errMsg
 function Deflate(data)
-	return ""
+	return zlib.deflate()(data)
 end
 
 ---@param data string
 ---@return string? data
 ---@return string? errMsg
 function Inflate(data)
-	return ""
+	return zlib.inflate()(data)
 end
 
 ---@return integer timeMillis
 function GetTime()
-	return 0
+	-- os.clock returns cpu time as float in seconds
+	-- SG GetTime https://github.com/PathOfBuildingCommunity/PathOfBuilding-SimpleGraphic/blob/166d251eefa6bf96ee5f6cd022d08410b7023283/engine/system/win/sys_main.cpp#L541
+	return os.clock() * 1000
 end
 
 ---@return string  scriptPath
@@ -396,7 +417,7 @@ end
 ---@return string? invalidPath
 ---@return string? errMsg
 function GetUserPath()
-	return ""
+	return os.getenv("HOME")
 end
 
 ---@param path string
@@ -412,7 +433,7 @@ function SetWorkDir(path) end
 
 ---@return string
 function GetWorkDir()
-	return ""
+	return os.getenv("PWD")
 end
 
 ---@alias SubScriptID userdata

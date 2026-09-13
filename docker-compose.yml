@@ -1,7 +1,7 @@
 services:
   busted-tests:
-    #build: .
-    image: ghcr.io/pathofbuildingcommunity/pathofbuilding-tests:latest
+    build: .
+    #image: ghcr.io/pathofbuildingcommunity/pathofbuilding-tests:latest
     environment:
       HOME: /tmp
     container_name: pathofbuilding-tests
@@ -13,3 +13,22 @@ services:
     working_dir: /workdir
     volumes:
       - ./:/workdir:ro
+  build-tests:
+    build: .
+    #image: ghcr.io/pathofbuildingcommunity/pathofbuilding-tests:latest
+    container_name: pathofbuilding-build-tests
+    command: /bin/sh spec/build-tests.sh 
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      LUA_PATH: "/tmp/workdir/runtime/lua/?.lua;/tmp/workdir/runtime/lua/?/init.lua;./?.lua;./?/init.lua;;"
+      HOME: /tmp
+      BASE_BRANCH: "${BASE_BRANCH:-dev}"
+      BASE_BRANCH_SHA: "${BASE_BRANCH_SHA}"
+    working_dir: /workdir
+    tmpfs: 
+      - /tmp:rw,size=2g,mode=1777
+    volumes:
+      - ./:/workdir:ro
+      - /tmp/build-tests-cache:/cache
+      - /tmp/build-tests-output:/output

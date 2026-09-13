@@ -1,53 +1,33 @@
-local function fetchBuilds(path, buildList)
-	buildList = buildList or {}
-	for file in lfs.dir(path) do
-		if file ~= "." and file ~= ".." then
-			local f = path..'/'..file
-			local attr = lfs.attributes (f)
-			assert(type(attr) == "table")
-			if attr.mode == "directory" then
-				fetchBuilds(f, buildList)
-			else
-				if file:match("^.+(%..+)$") == ".xml" then
-					local fileHnd, errMsg = io.open(f, "r")
-					if not fileHnd then
-						return nil, errMsg
-					end
-					local fileText = fileHnd:read("*a")
-					fileHnd:close()
-					buildList[f] = fileText
-				end
-			end
-		end
-	end
-	return buildList
-end
+package.path = "runtime/lua/?.lua;" .. package.path
+local json = require("dkjson")
+local base64 = require("base64")
+local zlib = require("zlib")
+local BASE_BRANCH_SHA = os.getenv("BASE_BRANCH_SHA")
+local input = assert(io.open("/cache/corpus_" .. BASE_BRANCH_SHA .. ".json", "r"))
+local corpus = assert(json.decode(input:read("*a")))
+assert(corpus.schemaVersion == 2 and #corpus.builds > 0 and #corpus.builds == corpus.count, "Invalid build corpus")
 
-function buildTable(tableName, values, string)
-	string = string or ""
-	string = string .. tableName .. " = {"
-	for key, value in pairs(values) do
-		if type(value) == "table" then
-			buildTable(key, value, string)
-		elseif type(value) == "boolean" then
-			string = string .. "[\"" .. key .. "\"] = " .. (value and "true" or "false") .. ",\n"
-		elseif type(value) == "string" then
-			string = string .. "[\"" .. key .. "\"] = \"" .. value .. "\",\n"
-		else
-			string = string .. "[\"" .. key .. "\"] = " .. round(value, 4) .. ",\n"
-		end
-	end
-	string = string .. "}\n"
-	return string
-end
+local filePath = "/cache/"
 
-local buildList = fetchBuilds("../spec/TestBuilds")
-for filename, testBuild in pairs(buildList) do
-	loadBuildFromXML(testBuild)
-	local fileHnd, errMsg = io.open(filename:gsub("^(.+)%..+$", "%1.lua"), "w+")
-	fileHnd:write("return {\n   xml = [[")
-	fileHnd:write(testBuild)
-	fileHnd:write("]],\n    ")
-	fileHnd:write(buildTable("output", build.calcsTab.mainOutput) .. "\n}")
-	fileHnd:close()
+for _, testBuild in ipairs(corpus.builds) do
+    local xml = zlib.inflate()(base64.decode(testBuild.code:gsub("-", "+"):gsub("_", "/")))
+	local startTime = GetTime()
+
+    -- Compute the build
+    print("[+] Computing " .. testBuild.sha256)
+    loadBuildFromXML(xml)
+    local calcDuration = GetTime() - startTime
+    print("[-] Computed in " .. calcDuration .. "ms")
+
+	local fileName = testBuild.sha256 .. "_" .. BASE_BRANCH_SHA
+	
+    -- Save the computed build xml. Include full minion and player outputs.
+    local buildHnd = io.open(filePath .. fileName .. ".build", "w+")
+    buildHnd:write(build:SaveDB("Cache", {fullPlayerStat = true, fullMinionStat = true} ))
+    buildHnd:close()
+
+    -- Save the amount of time calculation of this build took
+    local timeHnd = io.open(filePath .. fileName .. ".time", "w+")
+    timeHnd:write(calcDuration)
+    timeHnd:close()
 end
